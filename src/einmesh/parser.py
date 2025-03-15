@@ -5,13 +5,6 @@ import torch
 from einmesh.spaces import SpaceType
 
 
-class UndefinedSpaceError(ValueError):
-    """Error raised when a required sample space is not defined."""
-
-    def __init__(self, space_name: str) -> None:
-        super().__init__(f"Undefined space: {space_name}")
-
-
 def einmesh(pattern: str, **kwargs: SpaceType) -> tuple[torch.Tensor, ...]:
     """
     Einmesh is a function that takes a pattern and a list of tensors and returns a new tensor.
@@ -28,3 +21,10 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> tuple[torch.Tensor, ...]:
     meshes = torch.meshgrid(*lin_samples.values(), indexing="ij")
 
     return meshes
+
+
+class UndefinedSpaceError(ValueError):
+    """Error raised when a required sample space is not defined."""
+
+    def __init__(self, space_name: str) -> None:
+        super().__init__(f"Undefined space: {space_name}")
