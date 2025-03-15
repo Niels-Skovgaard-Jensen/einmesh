@@ -5,7 +5,7 @@ description = "einops style multi dimensional meshgrids"
 authors = [{ name = "Niels Skovgaard Jensen", email = "niels@skovgaardjensen.io" }]
 readme = "README.md"
 keywords = ['einops', 'meshgrid', 'einmesh', 'python', 'torch', 'numpy', 'jax']
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10,<4.0"
 classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
