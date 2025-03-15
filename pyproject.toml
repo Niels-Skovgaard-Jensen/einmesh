@@ -1,10 +1,10 @@
 [project]
 name = "einmesh"
 version = "0.0.1"
-description = "einops style multi dimensional linspaces"
+description = "einops style multi dimensional meshgrids"
 authors = [{ name = "Niels Skovgaard Jensen", email = "niels@skovgaardjensen.io" }]
 readme = "README.md"
-keywords = ['python']
+keywords = ['einops', 'meshgrid', 'einmesh', 'python', 'torch', 'numpy', 'jax']
 requires-python = ">=3.9,<4.0"
 classifiers = [
     "Intended Audience :: Developers",
@@ -16,6 +16,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "torch>=1.0",
 ]
 
 [project.urls]
