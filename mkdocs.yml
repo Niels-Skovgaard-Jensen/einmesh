@@ -1,0 +1,52 @@
+site_name: einmesh
+repo_url: https://github.com/niels-skovgaard-jensen/einmesh
+site_url: https://niels-skovgaard-jensen.github.io/einmesh
+site_description: einops style multi dimensional linspaces
+site_author: Niels Skovgaard Jensen
+edit_uri: edit/main/docs/
+repo_name: niels-skovgaard-jensen/einmesh
+copyright: Maintained by <a href="https://niels-skovgaard-jensen.com">niels-skovgaard-jensen</a>.
+
+nav:
+  - Home: index.md
+  - Modules: modules.md
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["src/einmesh"]
+theme:
+  name: material
+  feature:
+    tabs: true
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/niels-skovgaard-jensen/einmesh
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/einmesh
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
