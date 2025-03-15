@@ -6,10 +6,13 @@ site_author: Niels Skovgaard Jensen
 edit_uri: edit/main/docs/
 repo_name: niels-skovgaard-jensen/einmesh
 copyright: Maintained by <a href="https://niels-skovgaard-jensen.com">niels-skovgaard-jensen</a>.
+docs_dir: docs
 
 nav:
-  - Home: index.md
-  - Modules: modules.md
+  - README: index.md
+  - More Examples: examples.md
+  - einmesh: einmesh.md
+  - Spaces: spaces.md
 plugins:
   - search
   - mkdocstrings:
@@ -50,3 +53,5 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
+  - markdown_include.include:
+      base_path: .

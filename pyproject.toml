@@ -37,6 +37,8 @@ dev = [
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
     "mkdocstrings[python]>=0.26.1",
+    "markdown-include>=0.8.1",
+    "mkdocs-jupyter>=0.25.1",
 ]
 
 [build-system]

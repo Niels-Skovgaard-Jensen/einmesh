@@ -5,6 +5,10 @@ import torch
 
 @dataclass
 class LogSpace:
+    """
+    Logarithmically spaced points.
+    """
+
     start: float
     end: float
     num: int
@@ -16,6 +20,10 @@ class LogSpace:
 
 @dataclass
 class LinSpace:
+    """
+    Linearly spaced points.
+    """
+
     start: float
     end: float
     num: int
@@ -26,6 +34,10 @@ class LinSpace:
 
 @dataclass
 class NormalDistribution:
+    """
+    Normal distribution.
+    """
+
     mean: float
     std: float
     num: int
@@ -36,6 +48,10 @@ class NormalDistribution:
 
 @dataclass
 class UniformDistribution:
+    """
+    Uniform distribution.
+    """
+
     low: float
     high: float
     num: int
@@ -46,6 +62,10 @@ class UniformDistribution:
 
 @dataclass
 class LatinHypercube:
+    """
+    Latin Hypercube.
+    """
+
     low: float
     high: float
     num: int
