@@ -27,7 +27,7 @@ def test_einmesh_star_pattern():
     z_space = LinSpace(0.0, 1.0, 2)
 
     # Using just *
-    result = einmesh("x y z -> *", x=x_space, y=y_space, z=z_space)
+    result = einmesh("* x y z", x=x_space, y=y_space, z=z_space)
 
     assert isinstance(result, torch.Tensor)
     assert result.shape == (3, 5, 3, 2)  # 3 meshes stacked as first dimension
@@ -45,15 +45,20 @@ def test_einmesh_parentheses_pattern():
     y_space = LinSpace(0.0, 1.0, 3)
 
     # Using pattern with parentheses
-    result = einmesh("x y -> (x y)", x=x_space, y=y_space)
+    result = einmesh("(x y)", x=x_space, y=y_space)
 
     # Basic check that we get a tensor
-    assert isinstance(result, torch.Tensor)
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+    assert isinstance(result[0], torch.Tensor)
+    assert isinstance(result[1], torch.Tensor)
 
     # Using einops.rearrange properly flattens the dimensions within parentheses
     # So the result should be a 1D tensor with shape (5*3,) = (15,)
-    assert result.ndim == 1
-    assert result.shape[0] == 5 * 3  # 15 elements total
+    assert result[0].ndim == 1
+    assert result[1].ndim == 1
+    assert result[0].shape[0] == 5 * 3  # 15 elements total
+    assert result[1].shape[0] == 5 * 3  # 15 elements total
 
 
 def test_einmesh_output_dimension_ordering():
@@ -62,22 +67,54 @@ def test_einmesh_output_dimension_ordering():
     y_space = LinSpace(0.0, 1.0, 3)
 
     # Get original meshes
-    x_mesh, y_mesh = einmesh("x y", x=x_space, y=y_space)
+    x1_mesh, y1_mesh = einmesh("x y", x=x_space, y=y_space)
+    y2_mesh, x2_mesh = einmesh("y x", x=x_space, y=y_space)
 
-    # Using output pattern to reorder dimensions
-    result_x_y = einmesh("x y -> x y", x=x_space, y=y_space)
-    result_y_x = einmesh("x y -> y x", x=x_space, y=y_space)
+    # Ensure results are transposed
+    assert torch.allclose(x1_mesh, x2_mesh.transpose(1, 0))
+    assert torch.allclose(y1_mesh, y2_mesh.transpose(1, 0))
 
-    # Check the type of results
-    if isinstance(result_x_y, tuple):
-        assert len(result_x_y) == 2
-        assert torch.allclose(result_x_y[0], x_mesh)
-        assert torch.allclose(result_x_y[1], y_mesh)
 
-    if isinstance(result_y_x, tuple):
-        assert len(result_y_x) == 2
-        assert torch.allclose(result_y_x[0], y_mesh)
-        assert torch.allclose(result_y_x[1], x_mesh)
+def test_star_position():
+    """Test that einmesh handles star position correctly."""
+    x_space = LinSpace(0.0, 1.0, 7)
+    y_space = LinSpace(0.0, 1.0, 9)
+
+    result = einmesh("* x y", x=x_space, y=y_space)
+    assert isinstance(result, torch.Tensor)
+    assert result.shape == (2, 7, 9)
+
+    result = einmesh("x * y", x=x_space, y=y_space)
+    assert isinstance(result, torch.Tensor)
+    assert result.shape == (7, 2, 9)
+
+    result = einmesh("x y *", x=x_space, y=y_space)
+    assert isinstance(result, torch.Tensor)
+    assert result.shape == (7, 9, 2)
+
+
+def test_axis_collection():
+    """Test that einmesh handles axis collection correctly."""
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+
+    result = einmesh("* (x y)", x=x_space, y=y_space)
+    assert isinstance(result, torch.Tensor)
+    assert result.shape == (2, 5 * 3)
+
+    result = einmesh("(x y) *", x=x_space, y=y_space)
+    assert isinstance(result, torch.Tensor)
+    assert result.shape == (5 * 3, 2)
+
+
+def test_star_in_axis_collection():
+    """Test that einmesh handles star in axis collection correctly."""
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+
+    result = einmesh("(* x) y", x=x_space, y=y_space)
+    assert isinstance(result, torch.Tensor)
+    assert result.shape == (2 * 5, 3)
 
 
 def test_invalid_pattern():
@@ -85,4 +122,4 @@ def test_invalid_pattern():
     x_space = LinSpace(0.0, 1.0, 5)
 
     with pytest.raises(UndefinedSpaceError):
-        einmesh("x y -> x y", x=x_space)  # Missing y space
+        einmesh("x y", x=x_space)  # Missing y space
