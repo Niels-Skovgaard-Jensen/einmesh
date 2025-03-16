@@ -54,6 +54,9 @@ typeCheckingMode = "basic"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.deptry.per_rule_ignores]
+DEP002 = ["numpy"]
+
 [tool.ruff]
 target-version = "py39"
 line-length = 120
