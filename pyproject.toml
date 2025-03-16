@@ -32,7 +32,6 @@ dev = [
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
     "deptry>=0.22.0",
-    "mypy>=0.991",
     "pytest-cov>=4.0.0",
     "ruff>=0.9.2",
     "mkdocs>=1.4.2",
@@ -40,6 +39,7 @@ dev = [
     "mkdocstrings[python]>=0.26.1",
     "markdown-include>=0.8.1",
     "mkdocs-jupyter>=0.25.1",
+    "pyright>=1.1.396",
 ]
 
 [build-system]
@@ -47,16 +47,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 
-
-[tool.mypy]
-files = ["src"]
-disallow_untyped_defs = true
-disallow_any_unimported = true
-no_implicit_optional = true
-check_untyped_defs = true
-warn_return_any = true
-warn_unused_ignores = true
-show_error_codes = true
+[tool.pyright]
+include = ["src"]
+typeCheckingMode = "basic"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
