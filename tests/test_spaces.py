@@ -62,7 +62,7 @@ def test_uniform_distribution():
     # Test sampling
     samples = uniform_dist._sample()
     assert isinstance(samples, torch.Tensor)
-    assert samples.shape == (1000, 1)
+    assert samples.shape == torch.Size([1000])
 
     # Check bounds
     assert torch.all(samples >= -1.0)
@@ -80,7 +80,7 @@ def test_latin_hypercube():
     # Test sampling
     samples = lhs._sample()
     assert isinstance(samples, torch.Tensor)
-    assert samples.shape == (100, 1)
+    assert samples.shape == torch.Size([100])
 
     # Check bounds
     assert torch.all(samples >= -1.0)
@@ -99,6 +99,42 @@ def test_einmesh_integration():
     assert isinstance(meshes[1], torch.Tensor)
     assert meshes[0].shape == (5, 3)
     assert meshes[1].shape == (5, 3)
+
+
+def test_linsspace_integration():
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+
+    meshes = einmesh("x y", x=x_space, y=y_space)
+
+    assert len(meshes) == 2
+
+
+def test_logspace_integration():
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LogSpace(0.0, 1.0, 3)
+
+    meshes = einmesh("x y", x=x_space, y=y_space)
+
+    assert len(meshes) == 2
+
+
+def test_normaldistribution_integration():
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = NormalDistribution(0.0, 1.0, 3)
+
+    meshes = einmesh("x y", x=x_space, y=y_space)
+
+    assert len(meshes) == 2
+
+
+def test_uniformdistribution_integration():
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = UniformDistribution(0.0, 1.0, 3)
+
+    meshes = einmesh("x y", x=x_space, y=y_space)
+
+    assert len(meshes) == 2
 
 
 def test_invalid_space():

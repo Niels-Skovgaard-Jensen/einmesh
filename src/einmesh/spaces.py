@@ -57,7 +57,7 @@ class UniformDistribution:
     num: int
 
     def _sample(self) -> torch.Tensor:
-        return torch.rand(self.num, 1) * (self.high - self.low) + self.low
+        return torch.rand(self.num) * (self.high - self.low) + self.low
 
 
 @dataclass
@@ -72,7 +72,7 @@ class LatinHypercube:
     connector: str = "default"
 
     def _sample(self) -> torch.Tensor:
-        return torch.rand(self.num, 1) * (self.high - self.low) + self.low
+        return torch.rand(self.num) * (self.high - self.low) + self.low
 
 
 SpaceType = LogSpace | LinSpace | NormalDistribution | UniformDistribution
