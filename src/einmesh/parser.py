@@ -19,10 +19,6 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple["torch.Te
 
     The pattern can have two forms:
     - Simple form: "x y z" - creates a mesh grid from the specified spaces.
-    - Extended form: "x y z -> output_pattern" - creates a mesh grid and reshapes
-      according to the output pattern.
-
-    In the output pattern:
     - "*" collects all mesh tensors into a single tensor (stacking the meshes)
     - Parentheses like "(y z)" combine dimensions by reshaping using einops.rearrange
 
@@ -33,9 +29,13 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple["torch.Te
         >>> # Return a tuple of 3 meshes
         >>> mesh_x, mesh_y, mesh_z = einmesh("x y z", x=x, y=y, z=z)
         >>> # Stack meshes into a single tensor with shape [3, 10, 20, 30]
-        >>> stacked = einmesh("x y z -> * x y z", x=x, y=y, z=z)
+        >>> stacked = einmesh("* x y z", x=x, y=y, z=z)
         >>> # Reshape combining y and z dimensions
-        >>> reshaped = einmesh("x y z -> x (y z)", x=x, y=y, z=z)
+        >>> reshaped = einmesh("x (y z)", x=x, y=y, z=z)
+        >>> # And stack the reshaped meshes
+        >>> stacked_reshaped = einmesh("* x (y z)", x=x, y=y, z=z)
+        >>> # Use the same space multiple times for a hypercube
+        >>> hypercube = einmesh("* x x x", x=x)
 
     Args:
         pattern: String pattern specifying input spaces and optional output reshaping
@@ -62,7 +62,6 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple["torch.Te
     # Handle star pattern for stacking meshes
     if stack_idx is not None:
         meshes = torch.stack(meshes, dim=stack_idx)
-
         dim_shapes["einstack"] = meshes.shape[stack_idx]
 
     if isinstance(meshes, torch.Tensor):
