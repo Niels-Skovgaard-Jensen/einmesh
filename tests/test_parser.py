@@ -80,6 +80,33 @@ def test_einmesh_output_dimension_ordering():
         assert torch.allclose(result_y_x[1], x_mesh)
 
 
+def test_star_position():
+    """Test that einmesh handles star position correctly."""
+    x_space = LinSpace(0.0, 1.0, 7)
+    y_space = LinSpace(0.0, 1.0, 9)
+
+    result = einmesh("x y -> * x y", x=x_space, y=y_space)
+    assert result.shape == (2, 7, 9)
+
+    result = einmesh("x y -> x * y", x=x_space, y=y_space)
+    assert result.shape == (7, 2, 9)
+
+    result = einmesh("x y -> x y *", x=x_space, y=y_space)
+    assert result.shape == (7, 9, 2)
+
+
+def test_axis_collection():
+    """Test that einmesh handles axis collection correctly."""
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+
+    result = einmesh("x y -> * (x y)", x=x_space, y=y_space)
+    assert result.shape == (2, 5 * 3)
+
+    result = einmesh("x y -> (x y) *", x=x_space, y=y_space)
+    assert result.shape == (5 * 3, 2)
+
+
 def test_invalid_pattern():
     """Test that einmesh raises error for invalid patterns."""
     x_space = LinSpace(0.0, 1.0, 5)

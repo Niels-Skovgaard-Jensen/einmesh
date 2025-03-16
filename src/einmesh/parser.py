@@ -53,23 +53,20 @@ def parse_output_pattern(output_pattern: str) -> list[str]:
 
 def handle_star_pattern(meshes: tuple[torch.Tensor, ...], output_pattern: str) -> Optional[torch.Tensor]:
     """Handle patterns with * for stacking meshes."""
-    # Special case: if output pattern is just "*", stack all meshes
-    if output_pattern.strip() == "*":
-        return torch.stack(meshes)
+
+    # Ensure there is only one star in the pattern
+    if output_pattern.count("*") > 1:
+        raise MultipleStarError()
 
     # Handle pattern that begins with * to stack all meshes
     if "*" in output_pattern:
         tokens = output_pattern.split()
         if "*" in tokens:
+            # Find the index of the star in the pattern
+            stacking_dim = tokens.index("*")
             # Stack all meshes first
-            stacked = torch.stack(meshes)
+            stacked = torch.stack(meshes, dim=stacking_dim)
 
-            # If * is the only token, return stacked tensor
-            if len(tokens) == 1:
-                return stacked
-
-            # For patterns like "* x y z", interpret as
-            # "put all meshes as first dimension, followed by the original dimensions"
             return stacked
 
     return None
@@ -79,53 +76,20 @@ def process_output_parts(
     output_parts: list[str],
     pattern_list: list[str],
     dim_to_tensor: dict[str, torch.Tensor],
-    meshes: tuple[torch.Tensor, ...],
+    meshes: tuple[torch.Tensor, ...] | torch.Tensor,
     dim_shapes: dict[str, int],
 ) -> Union[torch.Tensor, tuple[torch.Tensor, ...]]:
     """Process the output pattern parts and return the appropriate tensor(s)."""
-    result_tensors = []
     einops_input_pattern = " ".join(pattern_list)
-    einops_output_parts = []
 
-    for part in output_parts:
-        if part.startswith("(") and part.endswith(")"):
-            # Handle grouped dimensions
-            inner_dims = part[1:-1].strip().split()
-            if not inner_dims:
-                continue
+    star_index = output_parts.index("*")
+    output_parts[star_index] = "star"
+    einops_input_pattern = einops_input_pattern.replace("*", "star")
+    dim_shapes["star"] = meshes.shape[star_index]
 
-            # Get the tensors for each dimension
-            tensors_to_combine = [dim_to_tensor[dim] for dim in inner_dims if dim in dim_to_tensor]
-            if not tensors_to_combine:
-                continue
+    einops_output_pattern = " ".join(output_parts)
 
-            # For parentheses, we'll create an output pattern like "(dim1 dim2)"
-            einops_output_parts.append(f"({' '.join(inner_dims)})")
-
-            # Simply use the first tensor as a placeholder - we'll use einops at the end
-            result_tensors.append(tensors_to_combine[0])
-        elif part in dim_to_tensor:
-            # Add the tensor directly
-            result_tensors.append(dim_to_tensor[part])
-            einops_output_parts.append(part)
-
-    # If we have parentheses in the pattern, we need to use einops for proper reshaping
-    if any("(" in part for part in einops_output_parts):
-        # We need to construct a tensor that combines all our dimensions
-        # This is a simplified approach - create a sample grid with all dimensions
-        # and then use einops.rearrange to reshape it
-        combined_tensor = meshes[0]  # Start with the first mesh
-
-        # Create a pattern for einops.rearrange
-        einops_output_pattern = " ".join(einops_output_parts)
-
-        # Use einops to reshape the tensor
-        return einops.rearrange(combined_tensor, f"{einops_input_pattern} -> {einops_output_pattern}", **dim_shapes)
-
-    # If no einops reshaping is needed, just return the tensors
-    if len(result_tensors) == 1:
-        return result_tensors[0]
-    return tuple(result_tensors)
+    return einops.rearrange(meshes, f"{einops_input_pattern} -> {einops_output_pattern}", **dim_shapes)
 
 
 def einmesh(pattern: str, **kwargs: SpaceType) -> Union[torch.Tensor, tuple[torch.Tensor, ...]]:
@@ -184,13 +148,21 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> Union[torch.Tensor, tuple[torc
     dim_to_tensor: dict[str, torch.Tensor] = dict(zip(pattern_list, meshes))
 
     # Handle star pattern for stacking meshes
-    star_result = handle_star_pattern(meshes, output_pattern)
-    if star_result is not None:
-        return star_result
+    star_meshes = handle_star_pattern(meshes, output_pattern)
 
+    if star_meshes is not None:
+        return star_meshes
     # Parse and process the output pattern
     output_parts = parse_output_pattern(output_pattern)
+
     return process_output_parts(output_parts, pattern_list, dim_to_tensor, meshes, dim_shapes)
+
+
+class MultipleStarError(ValueError):
+    """Error raised when multiple '*' are found in the output pattern."""
+
+    def __init__(self) -> None:
+        super().__init__("Multiple '*' are not allowed in the output pattern")
 
 
 class UndefinedSpaceError(ValueError):
