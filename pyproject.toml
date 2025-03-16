@@ -1,6 +1,6 @@
 [project]
 name = "einmesh"
-version = "0.0.1"
+version = "0.0.3"
 description = "einops style multi dimensional meshgrids"
 authors = [{ name = "Niels Skovgaard Jensen", email = "niels@skovgaardjensen.io" }]
 readme = "README.md"
