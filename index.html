@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="einops style multi dimensional linspaces">
+        <meta name="description" content="Multi dimensional meshgrids, einops-style">
       
       
         <meta name="author" content="Niels Skovgaard Jensen">
@@ -349,6 +349,27 @@
   
   
     <li class="md-nav__item">
+      <a href="examples/basic.ipynb" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    notebook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="einmesh/" class="md-nav__link">
         
   
@@ -446,34 +467,38 @@
 <a href="https://img.shields.io/github/license/niels-skovgaard-jensen/einmesh"><img alt="License" src="https://img.shields.io/github/license/niels-skovgaard-jensen/einmesh" /></a></p>
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <p>Simple installation from pip:</p>
-<pre><code>pip install einmesh
-</code></pre>
+<div class="codehilite"><pre><span></span><code>pip install einmesh
+</code></pre></div>
+
 <h1 id="api">API<a class="headerlink" href="#api" title="Permanent link">&para;</a></h1>
 <p>Create high dimensional meshgrids through a single command.</p>
-<pre><code class="language-python">from einmesh import einmesh, LogSpace, LinSpace
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">einmesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">einmesh</span><span class="p">,</span> <span class="n">LogSpace</span><span class="p">,</span> <span class="n">LinSpace</span>
 
-x, y = einmesh(
-    &quot;x y&quot;,                                       # Name a set of axis einops style
-    x=LinSpace(start=0, end=3, num=3),           # Provide a space to sample from
-    y=LogSpace(start=0, end=1, num=3, base=10),  # -- Mix and match as you like!
-)
-print(f&quot;{x=}&quot;)
-print(f&quot;{y=}&quot;)
-</code></pre>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">einmesh</span><span class="p">(</span>
+    <span class="s2">&quot;x y&quot;</span><span class="p">,</span>                                       <span class="c1"># Name a set of axis einops style</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">LinSpace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>           <span class="c1"># Provide a space to sample from</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">LogSpace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>  <span class="c1"># -- Mix and match as you like!</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
 <p>Will output</p>
-<pre><code class="language-bash">x=tensor([[0.0000, 0.0000, 0.0000],
-        [1.5000, 1.5000, 1.5000],
-        [3.0000, 3.0000, 3.0000]])
-y=tensor([[ 1.0000,  3.1623, 10.0000],
-        [ 1.0000,  3.1623, 10.0000],
-        [ 1.0000,  3.1623, 10.0000]])
-</code></pre>
-<p>Thus it is effectively equivalent to common torch code</p>
-<pre><code class="language-python">x = torch.linspace(start=0, end=1, num=3)
-y = torch.logspace(start=0, end=1, num=3, base=10)
+<div class="codehilite"><pre><span></span><code><span class="nv">x</span><span class="o">=</span>tensor<span class="o">([[</span><span class="m">0</span>.0000,<span class="w"> </span><span class="m">0</span>.0000,<span class="w"> </span><span class="m">0</span>.0000<span class="o">]</span>,
+<span class="w">        </span><span class="o">[</span><span class="m">1</span>.5000,<span class="w"> </span><span class="m">1</span>.5000,<span class="w"> </span><span class="m">1</span>.5000<span class="o">]</span>,
+<span class="w">        </span><span class="o">[</span><span class="m">3</span>.0000,<span class="w"> </span><span class="m">3</span>.0000,<span class="w"> </span><span class="m">3</span>.0000<span class="o">]])</span>
+<span class="nv">y</span><span class="o">=</span>tensor<span class="o">([[</span><span class="w"> </span><span class="m">1</span>.0000,<span class="w">  </span><span class="m">3</span>.1623,<span class="w"> </span><span class="m">10</span>.0000<span class="o">]</span>,
+<span class="w">        </span><span class="o">[</span><span class="w"> </span><span class="m">1</span>.0000,<span class="w">  </span><span class="m">3</span>.1623,<span class="w"> </span><span class="m">10</span>.0000<span class="o">]</span>,
+<span class="w">        </span><span class="o">[</span><span class="w"> </span><span class="m">1</span>.0000,<span class="w">  </span><span class="m">3</span>.1623,<span class="w"> </span><span class="m">10</span>.0000<span class="o">]])</span>
+</code></pre></div>
 
-x, y = torch.meshgrid(x, y, indexing=&quot;ij&quot;)
-</code></pre>
+<p>Thus it is effectively equivalent to common torch code</p>
+<div class="codehilite"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+</code></pre></div>
+
 <p>Which in 2D is not too bad, but in high dimensions can get tireing!</p>
 
 
