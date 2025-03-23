@@ -10,7 +10,8 @@ docs_dir: docs
 
 nav:
   - README: index.md
-  - More Examples: examples.md
+  - Examples:
+      - notebooks/basics.md
   - einmesh: einmesh.md
   - Spaces: spaces.md
 plugins:
@@ -18,6 +19,11 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          options:
+            allow_inspection: true
+            show_source: false
+            show_inheritance_diagram: true
+            show_bases: true
           paths: ["src/einmesh"]
 theme:
   name: material
@@ -33,7 +39,7 @@ theme:
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: black
+      primary: orange
       accent: deep orange
       toggle:
         icon: material/brightness-4
@@ -49,8 +55,8 @@ extra:
       link: https://pypi.org/project/einmesh
 
 markdown_extensions:
-  - toc:
-      permalink: true
+  - codehilite
+
   - pymdownx.arithmatex:
       generic: true
   - markdown_include.include:
