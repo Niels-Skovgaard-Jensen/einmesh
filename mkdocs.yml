@@ -55,8 +55,11 @@ extra:
       link: https://pypi.org/project/einmesh
 
 markdown_extensions:
-  - codehilite
-
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
   - pymdownx.arithmatex:
       generic: true
   - markdown_include.include:

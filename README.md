@@ -12,33 +12,112 @@ Simple installation from pip:
 ```
 pip install einmesh
 ```
-# API
-Create high dimensional meshgrids through a single command.
-```python
-from einmesh import einmesh, LogSpace, LinSpace
+or `uv`
+```
+uv add einmesh
+```
+# Features
+- **einops-style Meshgrid Generation**: The core function `einmesh` allows creating multi-dimensional meshgrids (like `torch.meshgrid`) using a concise string pattern similar to `einops`.
+- **Flexible Space Definitions**: Users define the dimensions using various "space" objects:
+    - `LinSpace`: Linearly spaced points.
+    - `LogSpace`: Logarithmically spaced points.
+    - `UniformDistribution`: Points sampled from a uniform distribution.
+    - `NormalDistribution`: Points sampled from a normal distribution.
+- **Pattern Features**:
+    - **Named Dimensions**: Pattern elements correspond to keyword arguments (e.g., `einmesh("x y", x=LinSpace(...), y=LogSpace(...))`).
+    - **Dimension Ordering**: The order in the pattern determines the order/shape of the output tensors (using `ij` indexing convention, like NumPy).
+    - **Stacking (`*`)**: A `*` in the pattern stacks the individual coordinate tensors along a new dimension, returning a single tensor.
+    - **Grouping (`()`)**: Parentheses group axes for rearrangement using `einops.rearrange`.
+    - **Duplicate Names**: Handles patterns like `"x x y"`, which repeats an axis and re-samples it.
+- **Output**:
+    - Returns a tuple of coordinate tensors if no `*` is present.
+    - Returns a single stacked tensor if `*` is present.
+- **Backend**: Uses `torch` tensors and `torch.meshgrid` internally.
 
-x, y = einmesh(
-    "x y",                                       # Name a set of axis einops style
-    x=LinSpace(start=0, end=3, num=3),           # Provide a space to sample from
-    y=LogSpace(start=0, end=1, num=3, base=10),  # -- Mix and match as you like!
-)
-print(f"{x=}")
-print(f"{y=}")
-```
-Will output
-```bash
-x=tensor([[0.0000, 0.0000, 0.0000],
-        [1.5000, 1.5000, 1.5000],
-        [3.0000, 3.0000, 3.0000]])
-y=tensor([[ 1.0000,  3.1623, 10.0000],
-        [ 1.0000,  3.1623, 10.0000],
-        [ 1.0000,  3.1623, 10.0000]])
-```
-Thus it is effectively equivalent to common torch code
-```python
-x = torch.linspace(start=0, end=1, num=3)
-y = torch.logspace(start=0, end=1, num=3, base=10)
 
-x, y = torch.meshgrid(x, y, indexing="ij")
+# Examples
+
+Here are a few examples demonstrating how to use `einmesh`:
+
+**1. Basic 2D Linear Grid**
+
+Create a simple 2D grid with linearly spaced points along x and y.
+
+```python
+import torch
+from einmesh import einmesh, LinSpace
+
+# Define the spaces
+x_space = LinSpace(0, 1, 10)  # 10 points from 0 to 1
+y_space = LinSpace(-1, 1, 20) # 20 points from -1 to 1
+
+# Create the meshgrid
+# Output: tuple of two tensors, each with shape (10, 20) following 'ij' indexing
+x_coords, y_coords = einmesh("x y", x=x_space, y=y_space)
+
+print(x_coords.shape, y_coords.shape)
+# Output: torch.Size([10, 20]) torch.Size([10, 20])
 ```
-Which in 2D is not too bad, but in high dimensions can get tireing!
+
+**2. Stacked Coordinates**
+
+Create a 3D grid and stack the coordinate tensors into a single tensor.
+
+```python
+import torch
+from einmesh import einmesh, LinSpace, LogSpace
+
+x_space = LinSpace(0, 1, 5)
+y_space = LinSpace(0, 1, 6)
+z_space = LogSpace(1, 100, 7) # 7 log-spaced points from 1 to 100
+
+# Use '*' to stack the coordinates along the last dimension
+# Output: single tensor with shape (5, 6, 7, 3)
+coords = einmesh("x y z *", x=x_space, y=y_space, z=z_space)
+
+print(coords.shape)
+# Output: torch.Size([5, 6, 7, 3])
+# coords[..., 0] contains x coordinates
+# coords[..., 1] contains y coordinates
+# coords[..., 2] contains z coordinates
+```
+
+**3. Using Distributions**
+
+Generate grid points by sampling from distributions.
+
+```python
+import torch
+from einmesh import einmesh, UniformDistribution, NormalDistribution
+
+# Sample 10 points uniformly between -5 and 5 for x
+x_dist = UniformDistribution(-5, 5, 10)
+# Sample 15 points from a normal distribution (mean=0, std=1) for y
+y_dist = NormalDistribution(0, 1, 15)
+
+# Create the meshgrid
+# Output: tuple of two tensors, each with shape (10, 15)
+x_samples, y_samples = einmesh("x y", x=x_dist, y=y_dist)
+
+print(x_samples.shape, y_samples.shape)
+# Output: torch.Size([10, 15]) torch.Size([10, 15])
+# Note: The points along each axis will not be sorted.
+```
+
+**4. Duplicate Dimension Names**
+
+Use the same space definition for multiple axes.
+
+```python
+import torch
+from einmesh import einmesh, LinSpace
+
+space = LinSpace(0, 1, 5)
+
+# 'x' space is used for both the first and second dimensions.
+# Output shapes: (5, 5, 10) for each tensor
+x0_coords, x1_coords, y_coords = einmesh("x x y", x=space, y=LinSpace(-1, 1, 10))
+
+print(x0_coords.shape, x1_coords.shape, y_coords.shape)
+# Output: torch.Size([5, 5, 10]) torch.Size([5, 5, 10]) torch.Size([5, 5, 10])
+```
