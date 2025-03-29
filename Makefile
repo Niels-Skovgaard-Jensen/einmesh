@@ -43,7 +43,7 @@ docs-test: ## Test if documentation can be built without warnings or errors
 	@uv run mkdocs build -s
 
 .PHONY: docs
-docs: ## Build and serve the documentation
+docs: notebook_docs## Build and serve the documentation
 	@uv run mkdocs serve
 
 .PHONY: help
@@ -53,6 +53,6 @@ help:
 
 .PHONY: notebook_docs
 notebook_docs:
-	@uv run python -m nbconvert --to markdown --execute example_notebooks/*.ipynb
+	@uv run python -m nbconvert --to markdown --execute docs/notebooks/*.ipynb
 
 .DEFAULT_GOAL := help
