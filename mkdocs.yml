@@ -12,8 +12,9 @@ nav:
   - README: index.md
   - Examples:
       - notebooks/basics.md
-  - einmesh: einmesh.md
-  - Spaces: spaces.md
+  - API:
+    - einmesh: einmesh.md
+    - Spaces: spaces.md
 plugins:
   - search
   - mkdocstrings:
