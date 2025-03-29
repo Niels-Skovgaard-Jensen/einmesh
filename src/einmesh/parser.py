@@ -17,7 +17,25 @@ def _handle_duplicate_names(
     shape_pattern: str,
     kwargs: dict[str, SpaceType],
 ) -> tuple[str, dict[str, str], dict[str, SpaceType]]:
-    """Handles renaming of duplicate space names in the pattern and updates kwargs."""
+    """
+    Handles renaming of duplicate space names in the pattern and updates kwargs.
+
+    If a space name appears multiple times in the pattern (e.g., "x x y"),
+    it renames subsequent occurrences with an index suffix (e.g., "x_0 x_1 y").
+    It updates the pattern string and the kwargs dictionary accordingly, adding
+    entries for the new names and removing the original duplicate entries from kwargs.
+
+    Args:
+        pattern: The original einmesh pattern string.
+        shape_pattern: The pattern string with parentheses removed.
+        kwargs: The dictionary of space names to SpaceType objects.
+
+    Returns:
+        A tuple containing:
+            - The modified pattern string with duplicates renamed.
+            - A dictionary mapping new names to original names (e.g., {"x_0": "x", "x_1": "x"}).
+            - The updated kwargs dictionary with renamed keys and removed originals.
+    """
     seen_names: dict[str, int] = {}
     name_mapping: dict[str, str] = {}
 
@@ -52,44 +70,74 @@ def _handle_duplicate_names(
 
 def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple[torch.Tensor, ...]:
     """
-    Create multi-dimensional meshgrids using einops-style pattern syntax.
+    Creates multi-dimensional meshgrids using an einops-style pattern string.
 
-    einmesh allows you to easily create and manipulate multi-dimensional meshgrids by combining different sampling spaces (like LinSpace or LatinHypercube) using an intuitive pattern syntax inspired by einops.
+    `einmesh` simplifies the creation and manipulation of multi-dimensional
+    meshgrids by specifying sampling spaces (like LinSpace, LogSpace, etc.)
+    and their arrangement using an intuitive pattern inspired by `einops`.
 
-    The pattern consists of space names that must correspond to keyword arguments. Each space name represents a dimension in the resulting meshgrid. The pattern can include:
+    The pattern string defines the dimensions and structure of the output:
+    - **Space Names:** Correspond to keyword arguments providing `SpaceType` objects
+      (e.g., "x y z" uses spaces named `x`, `y`, `z` passed as kwargs).
+    - **Repeated Names:** Handles dimensions derived from the same space type
+      (e.g., "x x y" results in dimensions named `x_0`, `x_1`, `y`).
+    - **Stacking (`*`):** Stacks the generated meshgrids for each space along a new
+      dimension. Only one `*` is allowed. The output is a single tensor.
+    - **Grouping (`()`):** Groups dimensions together in the output tensor shape,
+      affecting the `einops.rearrange` operation applied internally.
 
-    - Space names: e.g. "x y z" creates a meshgrid from spaces x, y, and z
-    - Stacking: "*" stacks multiple meshgrids into a single tensor along that dimension
-    - Grouping: "(x y)" groups dimensions x and y together
+    If the pattern does *not* contain `*`, the function returns a tuple of tensors,
+    one for each space name in the pattern (after handling duplicates). Each tensor
+    in the tuple represents the coordinates for that specific dimension across the
+    entire meshgrid, ordered according to the pattern.
+
+    If the pattern *does* contain `*`, the function returns a single tensor where
+    the individual meshgrids are stacked along the dimension specified by `*`.
 
     Examples:
-        >>> # Basic 2D meshgrid from linspaces
-        >>> x = LinSpace(0, 1, 5)
-        >>> y = LinSpace(0, 1, 3)
-        >>> grid = einmesh("x y", x=x, y=y)  # shape: (5, 3)
+        >>> from einmesh import LinSpace, einmesh
+        >>> x_space = LinSpace(0, 1, 5)
+        >>> y_space = LinSpace(10, 20, 3)
 
-        >>> # Stack multiple meshgrids with *
-        >>> stacked = einmesh("* (x y)", x=x, y=y)  # shape: (2, 5, 3)
+        >>> # Basic 2D meshgrid (returns tuple: (x_coords, y_coords))
+        >>> x_coords, y_coords = einmesh("x y", x=x_space, y=y_space)
+        >>> x_coords.shape  # (5, 3) - x varies along the first dim
+        torch.Size([5, 3])
+        >>> y_coords.shape  # (5, 3) - y varies along the second dim
+        torch.Size([5, 3])
 
-        >>> # Stack and reshape
-        >>> x = einmesh("* (x y)",
-        ...              x=LinSpace(0, 1, 5),
-        ...              y=LinSpace(0, 1, 3))  # shape: (2, 5*3)
+        >>> # Stacked meshgrid (returns single tensor)
+        >>> # '*' indicates stacking dimension
+        >>> stacked_grid = einmesh("* x y", x=x_space, y=y_space)
+        >>> stacked_grid.shape # (2, 5, 3) - Dim 0 stacks x and y grids
+        torch.Size([2, 5, 3])
+
+        >>> # Grouping affects rearrangement (here, stacks x and y coords)
+        >>> stacked_grouped = einmesh("* (x y)", x=x_space, y=y_space)
+        >>> stacked_grouped.shape # (2, 15) - Dim 0 stacks, dim 1 combines x & y
+        torch.Size([2, 15])
+
+        >>> # Repeated spaces
+        >>> x0_coords, x1_coords = einmesh("x x", x=x_space)
+        >>> x0_coords.shape
+        torch.Size([5, 5])
 
     Args:
-        pattern: String pattern specifying the input spaces
-        **kwargs: Space objects (LinSpace, LogSpace etc.) corresponding to names in pattern
+        pattern: The einops-style string defining meshgrid structure.
+        **kwargs: Keyword arguments mapping space names in the pattern to
+                  `SpaceType` objects (e.g., `x=LinSpace(0, 1, 10)`).
 
     Returns:
-        Either a single tensor or a tuple of tensors depending on the pattern.
-        Returns tuple when pattern has no stacking (*).
-        Returns single tensor when pattern includes stacking.
+        A `torch.Tensor` if the pattern includes `*` (stacking), or a
+        `tuple[torch.Tensor, ...]` if the pattern does not include `*`.
 
     Raises:
-        UnbalancedParenthesesError: If parentheses in pattern are not balanced
-        MultipleStarError: If pattern contains multiple * characters
-        UndefinedSpaceError: If pattern contains space name with no corresponding kwarg
-        UnderscoreError: If pattern contains invalid underscore usage
+        UnbalancedParenthesesError: If parentheses in the pattern are not balanced.
+        MultipleStarError: If the pattern contains more than one `*`.
+        UndefinedSpaceError: If a name in the pattern doesn't have a corresponding
+                             kwarg `SpaceType`.
+        ArrowError: If the pattern contains '->', which is not supported.
+        # Note: UnderscoreError is currently commented out in _verify_pattern
     """
 
     _verify_pattern(pattern)
@@ -140,7 +188,28 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple[torch.Ten
 
 
 def _generate_samples(sampling_list: list[str], **kwargs: SpaceType) -> tuple[list[torch.Tensor], dict[str, int]]:
-    """Generate samples based on the provided ordered list."""
+    """
+    Generates 1D samples for each space and creates initial meshgrids.
+
+    Uses `torch.meshgrid` with `indexing="ij"` based on the ordered
+    `sampling_list`.
+
+    Args:
+        sampling_list: An ordered list of space names (potentially renamed
+                       if duplicates existed in the original pattern).
+        **kwargs: The dictionary of space names to `SpaceType` objects,
+                  potentially updated with renamed keys.
+
+    Returns:
+        A tuple containing:
+            - A list of `torch.Tensor` objects representing the meshgrid
+              coordinates for each dimension in `sampling_list`. The order
+              matches `sampling_list`.
+            - A dictionary mapping space names to their corresponding dimension sizes.
+
+    Raises:
+        UndefinedSpaceError: If a name in `sampling_list` is not found in `kwargs`.
+    """
     lin_samples: list[torch.Tensor] = []
     dim_shapes: dict[str, int] = {}
     # Iterate using the provided sampling_list to ensure correct order
@@ -158,7 +227,24 @@ def _generate_samples(sampling_list: list[str], **kwargs: SpaceType) -> tuple[li
 
 
 def _verify_pattern(pattern: str) -> None:
-    """Verify the pattern is valid."""
+    """
+    Performs basic validation checks on the input pattern string.
+
+    Checks for:
+    - More than one stacking operator (`*`).
+    - Unbalanced parentheses.
+    - Presence of '->' (reserved for potential future use or indicating error).
+    # - Presence of underscores ('_') - Currently commented out.
+
+    Args:
+        pattern: The input einmesh pattern string.
+
+    Raises:
+        MultipleStarError: If pattern contains more than one `*`.
+        UnbalancedParenthesesError: If pattern has unbalanced parentheses.
+        ArrowError: If pattern contains '->'.
+        # UnderscoreError: If pattern contains '_' (currently disabled).
+    """
     if pattern.count("*") > 1:
         raise MultipleStarError()
     if pattern.count("(") != pattern.count(")"):
