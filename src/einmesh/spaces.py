@@ -1,5 +1,5 @@
-import typing as t
 from dataclasses import dataclass
+from typing import Union
 
 import torch
 
@@ -54,6 +54,46 @@ class LinSpace:
 
 
 @dataclass
+class ConstantSpace:
+    """
+    Represents a constant value repeated multiple times.
+
+    This class generates a tensor containing the same constant value repeated
+    `num` times.
+
+    Attributes:
+        value: The constant float value to be used.
+        num: The number of times the constant value should be repeated. Defaults to 1.
+    """
+
+    value: float
+    num: int = 1
+
+    def _sample(self) -> torch.Tensor:
+        """Generates a tensor with the constant value repeated."""
+        return torch.full((self.num,), self.value)
+
+
+@dataclass
+class ListSpace:
+    """
+    Represents a predefined list of values.
+
+    This class generates a tensor directly from a provided list of float values.
+    The number of points generated is equal to the length of the input list.
+
+    Attributes:
+        values: A list of float values to be converted into a tensor.
+    """
+
+    values: list[float]
+
+    def _sample(self) -> torch.Tensor:
+        """Generates a tensor from the provided list of values."""
+        return torch.tensor(self.values)
+
+
+@dataclass
 class NormalDistribution:
     """
     Represents a sampling from a normal (Gaussian) distribution.
@@ -100,4 +140,11 @@ class UniformDistribution:
         return torch.rand(self.num) * (self.high - self.low) + self.low
 
 
-SpaceType = t.Union[LogSpace, LinSpace, NormalDistribution, UniformDistribution]
+SpaceType = Union[
+    LogSpace,
+    LinSpace,
+    NormalDistribution,
+    UniformDistribution,
+    ConstantSpace,
+    ListSpace,
+]

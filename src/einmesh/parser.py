@@ -1,15 +1,18 @@
 import re
+import typing as t
 
 import einops
 import torch
 
 from einmesh.exceptions import (
     ArrowError,
+    InvalidListTypeError,
     MultipleStarError,
     UnbalancedParenthesesError,
     UndefinedSpaceError,
+    UnsupportedSpaceTypeError,
 )
-from einmesh.spaces import SpaceType
+from einmesh.spaces import ConstantSpace, ListSpace, SpaceType
 
 
 def _handle_duplicate_names(
@@ -68,17 +71,25 @@ def _handle_duplicate_names(
     return pattern, name_mapping, updated_kwargs
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple[torch.Tensor, ...]:
+# Define the type alias for acceptable kwarg values
+KwargValueType = t.Union[SpaceType, int, float, list[t.Union[int, float]]]
+
+
+def einmesh(pattern: str, **kwargs: KwargValueType) -> torch.Tensor | tuple[torch.Tensor, ...]:
     """
     Creates multi-dimensional meshgrids using an einops-style pattern string.
 
     `einmesh` simplifies the creation and manipulation of multi-dimensional
-    meshgrids by specifying sampling spaces (like LinSpace, LogSpace, etc.)
-    and their arrangement using an intuitive pattern inspired by `einops`.
+    meshgrids by specifying sampling spaces and their arrangement using an
+    intuitive pattern inspired by `einops`.
 
     The pattern string defines the dimensions and structure of the output:
-    - **Space Names:** Correspond to keyword arguments providing `SpaceType` objects
-      (e.g., "x y z" uses spaces named `x`, `y`, `z` passed as kwargs).
+    - **Space Names:** Correspond to keyword arguments providing sampling definitions.
+    - **Sampling Definitions:** Can be:
+        - `SpaceType` objects (e.g., `LinSpace`, `LogSpace`).
+        - Single `int` or `float` values (automatically converted to `ConstantSpace`).
+        - `list` of `int` or `float` values (automatically converted to `ListSpace`).
+      (e.g., `x=LinSpace(0, 1, 5)`, `y=10.0`, `z=[1, 2, 4]`)
     - **Repeated Names:** Handles dimensions derived from the same space type
       (e.g., "x x y" results in dimensions named `x_0`, `x_1`, `y`).
     - **Stacking (`*`):** Stacks the generated meshgrids for each space along a new
@@ -97,35 +108,48 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple[torch.Ten
     Examples:
         >>> from einmesh import LinSpace, einmesh
         >>> x_space = LinSpace(0, 1, 5)
-        >>> y_space = LinSpace(10, 20, 3)
 
-        >>> # Basic 2D meshgrid (returns tuple: (x_coords, y_coords))
-        >>> x_coords, y_coords = einmesh("x y", x=x_space, y=y_space)
-        >>> x_coords.shape  # (5, 3) - x varies along the first dim
+        >>> # Basic 2D meshgrid (tuple output)
+        >>> x_coords, y_coords = einmesh("x y", x=x_space, y=10.0)
+        >>> x_coords.shape
+        torch.Size([5, 1])
+        >>> y_coords.shape
+        torch.Size([5, 1])
+        >>> y_coords # Constant value 10.0 repeated
+        tensor([[10.],
+                [10.],
+                [10.],
+                [10.],
+                [10.]])
+
+        >>> # Using a list for a dimension
+        >>> x_coords, z_coords = einmesh("x z", x=x_space, z=[1, 2, 4])
+        >>> z_coords.shape
         torch.Size([5, 3])
-        >>> y_coords.shape  # (5, 3) - y varies along the second dim
-        torch.Size([5, 3])
+        >>> z_coords[0] # First row shows the list values
+        tensor([1., 2., 4.])
 
-        >>> # Stacked meshgrid (returns single tensor)
-        >>> # '*' indicates stacking dimension
-        >>> stacked_grid = einmesh("* x y", x=x_space, y=y_space)
-        >>> stacked_grid.shape # (2, 5, 3) - Dim 0 stacks x and y grids
-        torch.Size([2, 5, 3])
+        >>> # Stacked meshgrid (single tensor output)
+        >>> stacked_grid = einmesh("* x y", x=x_space, y=10.0)
+        >>> stacked_grid.shape
+        torch.Size([2, 5, 1])
 
-        >>> # Grouping affects rearrangement (here, stacks x and y coords)
-        >>> stacked_grouped = einmesh("* (x y)", x=x_space, y=y_space)
-        >>> stacked_grouped.shape # (2, 15) - Dim 0 stacks, dim 1 combines x & y
-        torch.Size([2, 15])
+        >>> # Grouping affects rearrangement
+        >>> stacked_grouped = einmesh("* (x y)", x=x_space, y=[10.0, 20.0])
+        >>> stacked_grouped.shape
+        torch.Size([2, 10])
 
-        >>> # Repeated spaces
-        >>> x0_coords, x1_coords = einmesh("x x", x=x_space)
+        >>> # Repeated spaces (using implicit ConstantSpace)
+        >>> x0_coords, x1_coords = einmesh("x x", x=5)
         >>> x0_coords.shape
-        torch.Size([5, 5])
+        torch.Size([1, 1])
+        >>> x0_coords.item()
+        5.0
 
     Args:
         pattern: The einops-style string defining meshgrid structure.
         **kwargs: Keyword arguments mapping space names in the pattern to
-                  `SpaceType` objects (e.g., `x=LinSpace(0, 1, 10)`).
+                  sampling definitions (`SpaceType`, `int`, `float`, or `list`).
 
     Returns:
         A `torch.Tensor` if the pattern includes `*` (stacking), or a
@@ -135,27 +159,47 @@ def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor | tuple[torch.Ten
         UnbalancedParenthesesError: If parentheses in the pattern are not balanced.
         MultipleStarError: If the pattern contains more than one `*`.
         UndefinedSpaceError: If a name in the pattern doesn't have a corresponding
-                             kwarg `SpaceType`.
+                             kwarg definition.
         ArrowError: If the pattern contains '->', which is not supported.
-        # Note: UnderscoreError is currently commented out in _verify_pattern
+        TypeError: If a kwarg value is not a `SpaceType`, `int`, `float`, or a
+                   valid `list` of `int`/`float`.
     """
 
     _verify_pattern(pattern)
+
+    # Process kwargs to convert raw values to SpaceTypes
+    processed_kwargs: dict[str, SpaceType] = {}
+    for name, value in kwargs.items():
+        if isinstance(value, (int, float)):
+            processed_kwargs[name] = ConstantSpace(value=float(value))
+        elif isinstance(value, list):
+            # Check if list contains only numbers (int or float)
+            if all(isinstance(item, (int, float)) for item in value):
+                # Convert all items to float for consistency
+                processed_kwargs[name] = ListSpace(values=[float(item) for item in value])
+            else:
+                # Explicitly annotate the list as list[str] to satisfy the type checker
+                invalid_types: list[str] = [type(item).__name__ for item in value if not isinstance(item, (int, float))]
+                raise InvalidListTypeError(space_name=name, invalid_types=invalid_types)
+        elif isinstance(value, SpaceType):
+            processed_kwargs[name] = value
+        else:
+            raise UnsupportedSpaceTypeError(space_name=name, invalid_type=type(value).__name__)
 
     # get stack index
     shape_pattern = pattern.replace("(", "").replace(")", "")
     stack_idx = shape_pattern.split().index("*") if "*" in shape_pattern else None
 
-    # Check for and handle duplicate names in pattern
-    pattern, name_mapping, kwargs = _handle_duplicate_names(pattern, shape_pattern, kwargs)
+    # Check for and handle duplicate names in pattern using processed kwargs
+    pattern, name_mapping, processed_kwargs_renamed = _handle_duplicate_names(pattern, shape_pattern, processed_kwargs)
 
     # Determine the final order of space names from the potentially modified pattern
     final_pattern_names = pattern.replace("(", "").replace(")", "").split()
     # Filter out '*' as it's not a sampling space name
     sampling_list = [name for name in final_pattern_names if name != "*"]
 
-    # Pass the ordered sampling_list and potentially modified kwargs
-    meshes, dim_shapes = _generate_samples(sampling_list, **kwargs)
+    # Pass the ordered sampling_list and processed+renamed kwargs
+    meshes, dim_shapes = _generate_samples(sampling_list, **processed_kwargs_renamed)
 
     # Handle star pattern for stacking meshes
     input_sampling_list = list(sampling_list)  # Base list for input pattern
