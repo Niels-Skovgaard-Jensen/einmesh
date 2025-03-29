@@ -3,7 +3,7 @@ import torch
 
 from einmesh import einmesh
 from einmesh.parser import UndefinedSpaceError
-from einmesh.spaces import LatinHypercube, LinSpace, LogSpace, NormalDistribution, UniformDistribution
+from einmesh.spaces import LinSpace, LogSpace, NormalDistribution, UniformDistribution
 
 
 def test_linear_space():
@@ -63,24 +63,6 @@ def test_uniform_distribution():
     samples = uniform_dist._sample()
     assert isinstance(samples, torch.Tensor)
     assert samples.shape == torch.Size([1000])
-
-    # Check bounds
-    assert torch.all(samples >= -1.0)
-    assert torch.all(samples <= 1.0)
-
-
-def test_latin_hypercube():
-    # Test initialization
-    lhs = LatinHypercube(low=-1.0, high=1.0, num=100)
-    assert lhs.low == -1.0
-    assert lhs.high == 1.0
-    assert lhs.num == 100
-    assert lhs.connector == "default"
-
-    # Test sampling
-    samples = lhs._sample()
-    assert isinstance(samples, torch.Tensor)
-    assert samples.shape == torch.Size([100])
 
     # Check bounds
     assert torch.all(samples >= -1.0)

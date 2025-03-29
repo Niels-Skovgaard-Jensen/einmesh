@@ -23,9 +23,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://niels-skovgaard-jensen.github.io/einmesh/"
+Homepage = "https://einmesh.xyz"
 Repository = "https://github.com/niels-skovgaard-jensen/einmesh"
-Documentation = "https://niels-skovgaard-jensen.github.io/einmesh/"
+Documentation = "https://einmesh.xyz"
 
 [dependency-groups]
 dev = [
@@ -41,11 +41,59 @@ dev = [
     "markdown-include>=0.8.1",
     "mkdocs-jupyter>=0.25.1",
     "pyright>=1.1.396",
+    "pygments>=2.19.1",
+    "hatch>=1.14.0",
+    "matplotlib>=3.10.1",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.setuptools]
+packages = ['einmesh']
+
+[tool.hatch.version]
+path = "einmesh/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.devcontainer",
+    "/.github",
+    "/.idea",
+    "/.pytest_cache",
+    "/build",
+    "/dist",
+    "/docs",
+    "/docs_src",
+    "/scripts",
+    "/log",
+]
+
+[tool.hatch.build.targets.wheel]
+# should use packages from main section
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "mkdocs~=1.6.1",
+    "mkdocs-material~=9.5.34",
+    "mkdocstrings[python]~=0.26.1",
+    "mkdocs-jupyter~=0.25.0",
+    "markdown-include~=0.8.1",
+    # pygments is required by codehilite (highlighting in mkdocs)
+    "pygments~=2.18.0",
+]
+[tool.hatch.envs.docs.scripts]
+# For examples to build one has to run:
+# hatch run docs:build
+convert = "python scripts/convert_readme.py"
+build = "convert && mkdocs build --clean --strict {args}"
+serve = "mkdocs serve --dev-addr localhost:8000 {args}"
+deploy = "convert && mkdocs build --clean --strict && mkdocs gh-deploy"
+# when mkdocs deployed from github actions, it requires --force. Reason unclear.
+deploy_force = "convert && mkdocs build --clean --strict && mkdocs gh-deploy --force"
+
+
 
 [tool.pyright]
 include = ["src"]

@@ -1,4 +1,4 @@
 from einmesh.parser import einmesh
-from einmesh.spaces import LatinHypercube, LinSpace, LogSpace, UniformDistribution
+from einmesh.spaces import LinSpace, LogSpace, UniformDistribution
 
-__all__ = ["LatinHypercube", "LinSpace", "LogSpace", "UniformDistribution", "einmesh"]
+__all__ = ["LinSpace", "LogSpace", "UniformDistribution", "einmesh"]
