@@ -38,3 +38,26 @@ class UndefinedSpaceError(ValueError):
 
     def __init__(self, space_name: str) -> None:
         super().__init__(f"Undefined space: {space_name}")
+
+
+class InvalidListTypeError(TypeError):
+    """Error raised when a list kwarg contains non-numeric types."""
+
+    def __init__(self, space_name: str, invalid_types: list[str]) -> None:
+        types_str = ", ".join(invalid_types)
+        message = (
+            f"List provided for space '{space_name}' must contain only int or float values, "
+            f"but got types: [{types_str}]"
+        )
+        super().__init__(message)
+
+
+class UnsupportedSpaceTypeError(TypeError):
+    """Error raised when a kwarg value has an unsupported type."""
+
+    def __init__(self, space_name: str, invalid_type: str) -> None:
+        message = (
+            f"Unsupported type for space '{space_name}': {invalid_type}. "
+            f"Must be a SpaceType, int, float, or list[int | float]."
+        )
+        super().__init__(message)
