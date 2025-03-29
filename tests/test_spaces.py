@@ -3,7 +3,14 @@ import torch
 
 from einmesh import einmesh
 from einmesh.parser import UndefinedSpaceError
-from einmesh.spaces import LinSpace, LogSpace, NormalDistribution, UniformDistribution
+from einmesh.spaces import (
+    ConstantSpace,
+    LinSpace,
+    ListSpace,
+    LogSpace,
+    NormalDistribution,
+    UniformDistribution,
+)
 
 
 def test_linear_space():
@@ -69,6 +76,39 @@ def test_uniform_distribution():
     assert torch.all(samples <= 1.0)
 
 
+def test_constant_space():
+    # Test initialization
+    const_space = ConstantSpace(value=5.0, num=3)
+    assert const_space.value == 5.0
+    assert const_space.num == 3
+
+    # Test sampling
+    samples = const_space._sample()
+    assert isinstance(samples, torch.Tensor)
+    assert samples.shape == (3,)
+    assert torch.all(samples == 5.0)
+
+    # Test default num=1
+    const_space_single = ConstantSpace(value=-2.0)
+    assert const_space_single.num == 1
+    samples_single = const_space_single._sample()
+    assert samples_single.shape == (1,)
+    assert samples_single.item() == -2.0
+
+
+def test_list_space():
+    # Test initialization
+    test_values = [1.1, 2.2, 3.3, 4.4]
+    list_space = ListSpace(values=test_values)
+    assert list_space.values == test_values
+
+    # Test sampling
+    samples = list_space._sample()
+    assert isinstance(samples, torch.Tensor)
+    assert samples.shape == (len(test_values),)
+    assert torch.allclose(samples, torch.tensor(test_values))
+
+
 def test_einmesh_integration():
     # Test einmesh with multiple spaces
     x_space = LinSpace(0.0, 1.0, 5)
@@ -117,6 +157,34 @@ def test_uniformdistribution_integration():
     meshes = einmesh("x y", x=x_space, y=y_space)
 
     assert len(meshes) == 2
+
+
+def test_constantspace_integration():
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = ConstantSpace(value=7.0, num=3)
+
+    meshes = einmesh("x y", x=x_space, y=y_space)
+
+    assert len(meshes) == 2
+    assert meshes[0].shape == (5, 3)
+    assert meshes[1].shape == (5, 3)
+    # Check if y values are constant
+    assert torch.all(meshes[1] == 7.0)
+
+
+def test_listspace_integration():
+    x_space = LinSpace(0.0, 1.0, 5)
+    list_values = [10.0, 20.0, 30.0]
+    y_space = ListSpace(values=list_values)
+
+    meshes = einmesh("x y", x=x_space, y=y_space)
+
+    assert len(meshes) == 2
+    assert meshes[0].shape == (5, 3)
+    assert meshes[1].shape == (5, 3)
+    # Check if y values match the list across the x dimension
+    expected_y = torch.tensor(list_values).unsqueeze(0).expand(5, -1)
+    assert torch.allclose(meshes[1], expected_y)
 
 
 def test_invalid_space():
