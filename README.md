@@ -69,7 +69,7 @@ from einmesh import einmesh, LinSpace, LogSpace
 
 x_space = LinSpace(0, 1, 5)
 y_space = LinSpace(0, 1, 6)
-z_space = LogSpace(1, 100, 7) # 7 log-spaced points from 1 to 100
+z_space = LogSpace(1, 2, 7)
 
 # Use '*' to stack the coordinates along the last dimension
 # Output: single tensor with shape (5, 6, 7, 3)
