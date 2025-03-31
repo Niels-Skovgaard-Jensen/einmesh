@@ -17,8 +17,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "einops>=0.8.1",
-    "numpy>=2.2.3",
+    "einops>=0.7.0",
+    "numpy>=2.0",
     "torch>=1.0",
 ]
 
