@@ -584,8 +584,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "einops", specifier = ">=0.8.1" },
-    { name = "numpy", specifier = ">=2.2.3" },
+    { name = "einops", specifier = ">=0.7.0" },
+    { name = "numpy", specifier = ">=2.0" },
     { name = "torch", specifier = ">=1.0" },
 ]
 

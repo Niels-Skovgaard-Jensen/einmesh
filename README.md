@@ -1,4 +1,7 @@
-# einmesh
+<p align="center">
+  <img src="docs/img/Einmesh Logo.svg" onerror="this.src='img/Einmesh Logo.svg'" alt="Einmesh Logo" width="600"/>
+</p>
+
 ## einops-style multi dimensional meshgrids
 
 [![Release](https://img.shields.io/github/v/release/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/v/release/niels-skovgaard-jensen/einmesh)
