@@ -2,8 +2,7 @@ import re
 import typing as t
 
 import einops
-import torch
-
+from einmesh._backends import AbstractBackend, JaxBackend, NumpyBackend, TorchBackend
 from einmesh.exceptions import (
     ArrowError,
     InvalidListTypeError,
@@ -11,6 +10,7 @@ from einmesh.exceptions import (
     UnbalancedParenthesesError,
     UndefinedSpaceError,
     UnsupportedSpaceTypeError,
+    UnknownBackendError
 )
 from einmesh.spaces import ConstantSpace, ListSpace, SpaceType
 
@@ -75,7 +75,23 @@ def _handle_duplicate_names(
 KwargValueType = t.Union[SpaceType, int, float, list[t.Union[int, float]]]
 
 
-def einmesh(pattern: str, **kwargs: KwargValueType) -> torch.Tensor | tuple[torch.Tensor, ...]:
+def _get_backend(backend: AbstractBackend | str) -> AbstractBackend:
+    if isinstance(backend, str):
+        if backend == "torch":
+            return TorchBackend()
+        elif backend == "jax":
+            return JaxBackend()
+        elif backend == "numpy":
+            return NumpyBackend()
+        else:
+            raise UnknownBackendError(backend)
+    elif isinstance(backend, AbstractBackend):
+        return backend
+    else:
+        raise UnknownBackendError(backend)
+
+
+def einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueType):
     """
     Creates multi-dimensional meshgrids using an einops-style pattern string.
 
@@ -166,6 +182,7 @@ def einmesh(pattern: str, **kwargs: KwargValueType) -> torch.Tensor | tuple[torc
     """
 
     _verify_pattern(pattern)
+    backend = _get_backend(backend)
 
     # Process kwargs to convert raw values to SpaceTypes
     processed_kwargs: dict[str, SpaceType] = {}
@@ -199,12 +216,12 @@ def einmesh(pattern: str, **kwargs: KwargValueType) -> torch.Tensor | tuple[torc
     sampling_list = [name for name in final_pattern_names if name != "*"]
 
     # Pass the ordered sampling_list and processed+renamed kwargs
-    meshes, dim_shapes = _generate_samples(sampling_list, **processed_kwargs_renamed)
+    meshes, dim_shapes = _generate_samples(sampling_list, backend, **processed_kwargs_renamed)
 
     # Handle star pattern for stacking meshes
     input_sampling_list = list(sampling_list)  # Base list for input pattern
     if stack_idx is not None:
-        meshes = torch.stack(meshes, dim=stack_idx)
+        meshes = backend.stack(meshes, dim=stack_idx)
         dim_shapes["einstack"] = meshes.shape[stack_idx]
         # Insert 'einstack' into the sampling list copy at the correct index for the input pattern
         input_sampling_list.insert(stack_idx, "einstack")
@@ -212,7 +229,7 @@ def einmesh(pattern: str, **kwargs: KwargValueType) -> torch.Tensor | tuple[torc
     # Define the input pattern based on the actual order of dimensions in the tensor(s)
     input_pattern = " ".join(input_sampling_list)
 
-    if isinstance(meshes, torch.Tensor):  # Stacked case
+    if backend.is_appropriate_type(meshes):  # Stacked case
         # Output pattern: User pattern with '*' replaced by 'einstack'
         output_pattern = pattern.replace("*", "einstack")
         meshes = einops.rearrange(meshes, f"{input_pattern} -> {output_pattern}", **dim_shapes)
@@ -231,7 +248,7 @@ def einmesh(pattern: str, **kwargs: KwargValueType) -> torch.Tensor | tuple[torc
     return meshes
 
 
-def _generate_samples(sampling_list: list[str], **kwargs: SpaceType) -> tuple[list[torch.Tensor], dict[str, int]]:
+def _generate_samples(sampling_list: list[str], backend: AbstractBackend, **kwargs: SpaceType):
     """
     Generates 1D samples for each space and creates initial meshgrids.
 
@@ -254,19 +271,19 @@ def _generate_samples(sampling_list: list[str], **kwargs: SpaceType) -> tuple[li
     Raises:
         UndefinedSpaceError: If a name in `sampling_list` is not found in `kwargs`.
     """
-    lin_samples: list[torch.Tensor] = []
+    lin_samples: list = []
     dim_shapes: dict[str, int] = {}
     # Iterate using the provided sampling_list to ensure correct order
     for p in sampling_list:
         if p not in kwargs:
             # This check might be redundant if pattern validation is robust, but safer to keep
             raise UndefinedSpaceError(p)
-        samples = kwargs[p]._sample()
+        samples = kwargs[p]._sample(backend)
         lin_samples.append(samples)
-        dim_shapes[p] = samples.size()[0]
+        dim_shapes[p] = backend.shape(samples)[0]
     # The order of meshes returned by torch.meshgrid(indexing='ij')
     # corresponds to the order of tensors in lin_samples.
-    meshes = list(torch.meshgrid(*lin_samples, indexing="ij"))
+    meshes = list(backend.meshgrid(*lin_samples, indexing="ij"))
     return meshes, dim_shapes
 
 

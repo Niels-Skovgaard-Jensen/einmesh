@@ -18,8 +18,6 @@ classifiers = [
 ]
 dependencies = [
     "einops>=0.7.0",
-    "numpy>=2.0",
-    "torch>=1.0",
 ]
 
 [project.urls]
@@ -29,6 +27,9 @@ Documentation = "https://einmesh.xyz"
 
 [dependency-groups]
 dev = [
+    "jax>=0.5.3",
+    "numpy>=2.0",
+    "torch>=1.0",
     "pytest>=7.2.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",

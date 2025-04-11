@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
 
-import torch
+from einmesh._backends import AbstractBackend
 
 
 @dataclass
@@ -25,9 +25,9 @@ class LogSpace:
     num: int
     base: float = 10
 
-    def _sample(self) -> torch.Tensor:
+    def _sample(self, backend: AbstractBackend):
         """Generates the logarithmically spaced points."""
-        return torch.logspace(self.start, self.end, self.num, base=self.base)
+        return backend.logspace(self.start, self.end, self.num, base=self.base)
 
 
 @dataclass
@@ -48,9 +48,9 @@ class LinSpace:
     end: float
     num: int
 
-    def _sample(self) -> torch.Tensor:
+    def _sample(self, backend: AbstractBackend):
         """Generates the linearly spaced points."""
-        return torch.linspace(self.start, self.end, self.num)
+        return backend.linspace(self.start, self.end, self.num)
 
 
 @dataclass
@@ -69,9 +69,9 @@ class ConstantSpace:
     value: float
     num: int = 1
 
-    def _sample(self) -> torch.Tensor:
+    def _sample(self, backend: AbstractBackend):
         """Generates a tensor with the constant value repeated."""
-        return torch.full((self.num,), self.value)
+        return backend.full((self.num,), self.value)
 
 
 @dataclass
@@ -88,9 +88,9 @@ class ListSpace:
 
     values: list[float]
 
-    def _sample(self) -> torch.Tensor:
+    def _sample(self, backend: AbstractBackend):
         """Generates a tensor from the provided list of values."""
-        return torch.tensor(self.values)
+        return backend.tensor(self.values)
 
 
 @dataclass
@@ -111,9 +111,9 @@ class NormalDistribution:
     std: float
     num: int
 
-    def _sample(self) -> torch.Tensor:
+    def _sample(self, backend: AbstractBackend):
         """Generates samples from the normal distribution."""
-        return torch.normal(self.mean, self.std, size=(self.num,))
+        return backend.normal(self.mean, self.std, size=(self.num,))
 
 
 @dataclass
@@ -134,10 +134,10 @@ class UniformDistribution:
     high: float
     num: int
 
-    def _sample(self) -> torch.Tensor:
+    def _sample(self, backend: AbstractBackend):
         """Generates samples from the uniform distribution."""
         # torch.rand samples from [0, 1), so we scale and shift.
-        return torch.rand(self.num) * (self.high - self.low) + self.low
+        return backend.rand(self.num) * (self.high - self.low) + self.low
 
 
 SpaceType = Union[

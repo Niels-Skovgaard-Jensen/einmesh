@@ -61,3 +61,10 @@ class UnsupportedSpaceTypeError(TypeError):
             f"Must be a SpaceType, int, float, or list[int | float]."
         )
         super().__init__(message)
+
+class UnknownBackendError(Exception):
+    """Error raised when a tensor type is unknown to einmesh."""
+
+    def __init__(self, tensor_type: type):
+        self.message = f"Tensor type unknown to einmesh: {tensor_type}"
+        super().__init__(self.message)
