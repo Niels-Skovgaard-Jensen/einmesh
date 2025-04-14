@@ -9,7 +9,11 @@ inputs:
   uv-version:
     description: "uv version to use"
     required: true
-    default: "0.6.2"
+    default: "0.6.14"
+  uv-group:
+    description: "uv dependency group to use"
+    required: true
+    default: "dev"
 
 runs:
   using: "composite"
@@ -26,5 +30,5 @@ runs:
         cache-suffix: ${{ matrix.python-version }}
 
     - name: Install Python dependencies
-      run: uv sync --frozen
+      run: uv sync --group ${{ inputs.uv-group }} --frozen
       shell: bash
