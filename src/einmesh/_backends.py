@@ -164,7 +164,7 @@ class NumpyBackend(AbstractBackend):
     framework_name = "numpy"
 
     def __init__(self):
-        import numpy
+        import numpy  # pyright: ignore[reportMissingImports]
 
         self.np = numpy
 
@@ -259,8 +259,8 @@ class JaxBackend(NumpyBackend):
         super().__init__()
         self.onp = self.np
 
-        import jax.numpy
-        import jax.random
+        import jax.numpy  # pyright: ignore[reportMissingImports]
+        import jax.random  # pyright: ignore[reportMissingImports]
 
         self.np = jax.numpy
         self._random = jax.random
@@ -285,7 +285,7 @@ class TorchBackend(AbstractBackend):
     framework_name = "torch"
 
     def __init__(self):
-        import torch
+        import torch  # pyright: ignore[reportMissingImports]
 
         self.torch = torch
 
