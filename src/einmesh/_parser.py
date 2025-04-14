@@ -1,5 +1,6 @@
 import re
 import typing as t
+from typing import Any
 
 import einops
 
@@ -93,7 +94,7 @@ def _get_backend(backend: AbstractBackend | str) -> AbstractBackend:
         raise UnknownBackendError(backend)
 
 
-def _einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueType):
+def _einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueType) -> Any | tuple[Any, ...]:
     """
     Creates multi-dimensional meshgrids using an einops-style pattern string.
 
@@ -170,7 +171,7 @@ def _einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueT
                   sampling definitions (`SpaceType`, `int`, `float`, or `list`).
 
     Returns:
-        A `torch.Tensor` if the pattern includes `*` (stacking), or a
+        Union[torch.Tensor, tuple[torch.Tensor, ...]]: A `torch.Tensor` if the pattern includes `*` (stacking), or a
         `tuple[torch.Tensor, ...]` if the pattern does not include `*`.
 
     Raises:

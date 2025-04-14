@@ -42,7 +42,7 @@ docs-test: ## Test if documentation can be built without warnings or errors
 
 .PHONY: docs
 docs: notebook_docs## Build and serve the documentation
-	@uv run mkdocs serve
+	@uv run mkdocs serve -s
 
 .PHONY: help
 help:
