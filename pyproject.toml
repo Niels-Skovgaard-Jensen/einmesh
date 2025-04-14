@@ -1,6 +1,6 @@
 [project]
 name = "einmesh"
-version = "0.0.3"
+version = "0.1.1"
 description = "einops style multi dimensional meshgrids"
 authors = [{ name = "Niels Skovgaard Jensen", email = "niels@skovgaardjensen.io" }]
 readme = "README.md"
@@ -29,20 +29,20 @@ Documentation = "https://einmesh.xyz"
 [dependency-groups]
 jax = [
     "jax>=0.5.3",
-    "pytest-cov>=4.0.0",
+    "einmesh[dev]",
 ]
 torch = [
     "torch>=1.0",
-    "pytest-cov>=4.0.0",
+    "einmesh[dev]",
 ]
 numpy = [
     "numpy>=2.0",
-    "pytest-cov>=4.0.0",
+    "einmesh[dev]",
 ]
 dev = [
-    "jax>=0.5.3",
-    "numpy>=2.0",
-    "torch>=1.0",
+    "einmesh",
+    "ruff>=0.9.2",
+    "deptry>=0.22.0",
     "pytest>=7.2.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
@@ -58,6 +58,12 @@ dev = [
     "hatch>=1.14.0",
     "matplotlib>=3.10.1",
     "basedpyright>=1.28.5",
+]
+dev-all = [
+    "einmesh[dev]",
+    "jax>=0.5.3",
+    "torch>=1.0",
+    "numpy>=2.0",
 ]
 
 [build-system]

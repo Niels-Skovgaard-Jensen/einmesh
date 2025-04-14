@@ -5,7 +5,7 @@ from einmesh._parser import _einmesh
 from einmesh.spaces import SpaceType
 
 if TYPE_CHECKING:
-    import numpy as np
+    import numpy as np  # pyright: ignore[reportMissingImports]
 
 
 def einmesh(pattern: str, **kwargs: SpaceType) -> "np.ndarray":

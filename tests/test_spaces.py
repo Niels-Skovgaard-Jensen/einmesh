@@ -21,6 +21,7 @@ from tests.conftest import parametrize_backends
 @parametrize_backends
 def test_linear_space(backend):
     # Test initialization
+    backend = backend()
     lin_space = LinSpace(start=0.0, end=1.0, num=5)
     assert lin_space.start == 0.0
     assert lin_space.end == 1.0
@@ -36,6 +37,7 @@ def test_linear_space(backend):
 @parametrize_backends
 def test_log_space(backend):
     # Test initialization
+    backend = backend()
     log_space = LogSpace(start=0.0, end=1.0, num=5, base=10)
     assert log_space.start == 0.0
     assert log_space.end == 1.0
@@ -52,6 +54,7 @@ def test_log_space(backend):
 @parametrize_backends
 def test_normal_distribution(backend):
     # Test initialization
+    backend = backend()
     normal_dist = NormalDistribution(mean=0.0, std=1.0, num=1000)
     assert normal_dist.mean == 0.0
     assert normal_dist.std == 1.0
@@ -70,6 +73,7 @@ def test_normal_distribution(backend):
 @parametrize_backends
 def test_uniform_distribution(backend):
     # Test initialization
+    backend = backend()
     uniform_dist = UniformDistribution(low=-1.0, high=1.0, num=1000)
     assert uniform_dist.low == -1.0
     assert uniform_dist.high == 1.0
@@ -88,6 +92,7 @@ def test_uniform_distribution(backend):
 @parametrize_backends
 def test_constant_space(backend):
     # Test initialization
+    backend = backend()
     const_space = ConstantSpace(value=5.0, num=3)
     assert const_space.value == 5.0
     assert const_space.num == 3
@@ -109,6 +114,7 @@ def test_constant_space(backend):
 @parametrize_backends
 def test_list_space(backend):
     # Test initialization
+    backend = backend()
     test_values = [1.1, 2.2, 3.3, 4.4]
     list_space = ListSpace(values=test_values)
     assert list_space.values == test_values
@@ -126,6 +132,7 @@ def test_list_space(backend):
 @parametrize_backends
 def test_einmesh_integration(backend):
     # Test einmesh with multiple spaces
+    backend = backend()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LogSpace(0.0, 1.0, 3)
 
@@ -140,6 +147,7 @@ def test_einmesh_integration(backend):
 
 @parametrize_backends
 def test_linsspace_integration(backend):
+    backend = backend()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
@@ -150,6 +158,7 @@ def test_linsspace_integration(backend):
 
 @parametrize_backends
 def test_logspace_integration(backend):
+    backend = backend()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LogSpace(0.0, 1.0, 3)
 
@@ -160,6 +169,7 @@ def test_logspace_integration(backend):
 
 @parametrize_backends
 def test_normaldistribution_integration(backend):
+    backend = backend()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = NormalDistribution(0.0, 1.0, 3)
 
@@ -170,6 +180,7 @@ def test_normaldistribution_integration(backend):
 
 @parametrize_backends
 def test_uniformdistribution_integration(backend):
+    backend = backend()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = UniformDistribution(0.0, 1.0, 3)
 
@@ -180,6 +191,7 @@ def test_uniformdistribution_integration(backend):
 
 @parametrize_backends
 def test_constantspace_integration(backend):
+    backend = backend()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = ConstantSpace(value=7.0, num=3)
 
@@ -194,6 +206,7 @@ def test_constantspace_integration(backend):
 
 @parametrize_backends
 def test_listspace_integration(backend) -> None:
+    backend = backend()
     x_space: LinSpace = LinSpace(start=0.0, end=1.0, num=5)
     list_values: list[float] = [10.0, 20.0, 30.0]
     y_space: ListSpace = ListSpace(values=list_values)
@@ -210,6 +223,7 @@ def test_listspace_integration(backend) -> None:
 
 @parametrize_backends
 def test_invalid_space(backend):
+    backend = backend()
     with pytest.raises(UndefinedSpaceError) as exc_info:
         einmesh("x y", x=LinSpace(0.0, 1.0, 5), backend=backend)  # Missing y space
     assert str(exc_info.value) == "Undefined space: y"

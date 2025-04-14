@@ -5,7 +5,7 @@ from einmesh._parser import _einmesh
 from einmesh.spaces import SpaceType
 
 if TYPE_CHECKING:
-    import torch
+    import torch  # pyright: ignore[reportMissingImports]
 
 
 def einmesh(pattern: str, **kwargs: SpaceType) -> "torch.Tensor":

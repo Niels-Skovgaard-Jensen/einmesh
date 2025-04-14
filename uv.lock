@@ -568,7 +568,7 @@ wheels = [
 
 [[package]]
 name = "einmesh"
-version = "0.0.3"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "einops" },
@@ -578,33 +578,37 @@ dependencies = [
 dev = [
     { name = "basedpyright" },
     { name = "deptry" },
+    { name = "einmesh" },
     { name = "hatch" },
-    { name = "jax" },
     { name = "markdown-include" },
     { name = "matplotlib" },
     { name = "mkdocs" },
     { name = "mkdocs-jupyter" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
-    { name = "numpy" },
     { name = "pre-commit" },
     { name = "pygments" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "torch" },
     { name = "tox-uv" },
 ]
-jax = [
+dev-all = [
+    { name = "einmesh" },
     { name = "jax" },
-    { name = "pytest-cov" },
+    { name = "numpy" },
+    { name = "torch" },
+]
+jax = [
+    { name = "einmesh" },
+    { name = "jax" },
 ]
 numpy = [
+    { name = "einmesh" },
     { name = "numpy" },
-    { name = "pytest-cov" },
 ]
 torch = [
-    { name = "pytest-cov" },
+    { name = "einmesh" },
     { name = "torch" },
 ]
 
@@ -618,33 +622,37 @@ requires-dist = [
 dev = [
     { name = "basedpyright", specifier = ">=1.28.5" },
     { name = "deptry", specifier = ">=0.22.0" },
+    { name = "einmesh" },
     { name = "hatch", specifier = ">=1.14.0" },
-    { name = "jax", specifier = ">=0.5.3" },
     { name = "markdown-include", specifier = ">=0.8.1" },
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "mkdocs", specifier = ">=1.4.2" },
     { name = "mkdocs-jupyter", specifier = ">=0.25.1" },
     { name = "mkdocs-material", specifier = ">=8.5.10" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.26.1" },
-    { name = "numpy", specifier = ">=2.0" },
     { name = "pre-commit", specifier = ">=2.20.0" },
     { name = "pygments", specifier = ">=2.19.1" },
     { name = "pytest", specifier = ">=7.2.0" },
     { name = "pytest-cov", specifier = ">=4.0.0" },
     { name = "ruff", specifier = ">=0.9.2" },
-    { name = "torch", specifier = ">=1.0" },
     { name = "tox-uv", specifier = ">=1.11.3" },
 ]
-jax = [
+dev-all = [
+    { name = "einmesh", extras = ["dev"] },
     { name = "jax", specifier = ">=0.5.3" },
-    { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "numpy", specifier = ">=2.0" },
+    { name = "torch", specifier = ">=1.0" },
+]
+jax = [
+    { name = "einmesh", extras = ["dev"] },
+    { name = "jax", specifier = ">=0.5.3" },
 ]
 numpy = [
+    { name = "einmesh", extras = ["dev"] },
     { name = "numpy", specifier = ">=2.0" },
-    { name = "pytest-cov", specifier = ">=4.0.0" },
 ]
 torch = [
-    { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "einmesh", extras = ["dev"] },
     { name = "torch", specifier = ">=1.0" },
 ]
 
