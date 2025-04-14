@@ -1,14 +1,6 @@
-import pytest
-
 from einmesh import einmesh
-from einmesh._backends import JaxBackend, NumpyBackend, TorchBackend
 from einmesh.spaces import LinSpace
-
-parametrize_backends = pytest.mark.parametrize(
-    "backend",
-    [TorchBackend(), NumpyBackend(), JaxBackend()],
-    ids=["torch", "numpy", "jax"],  # Optional: Add IDs for clearer test names
-)
+from tests.conftest import parametrize_backends
 
 
 @parametrize_backends

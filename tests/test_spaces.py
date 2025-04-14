@@ -4,7 +4,7 @@ import torch
 
 from einmesh import einmesh
 from einmesh._backends import JaxBackend, NumpyBackend, TorchBackend
-from einmesh.parser import UndefinedSpaceError
+from einmesh._parser import UndefinedSpaceError
 from einmesh.spaces import (
     ConstantSpace,
     LinSpace,
@@ -14,12 +14,8 @@ from einmesh.spaces import (
     UniformDistribution,
 )
 
-# Define the reusable decorator
-parametrize_backends = pytest.mark.parametrize(
-    "backend",
-    [TorchBackend(), NumpyBackend(), JaxBackend()],
-    ids=["torch", "numpy", "jax"],  # Optional: Add IDs for clearer test names
-)
+# Try explicit absolute import
+from tests.conftest import parametrize_backends
 
 
 @parametrize_backends

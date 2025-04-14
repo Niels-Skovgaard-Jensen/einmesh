@@ -41,10 +41,10 @@ dev = [
     "mkdocstrings[python]>=0.26.1",
     "markdown-include>=0.8.1",
     "mkdocs-jupyter>=0.25.1",
-    "pyright>=1.1.396",
     "pygments>=2.19.1",
     "hatch>=1.14.0",
     "matplotlib>=3.10.1",
+    "basedpyright>=1.28.5",
 ]
 
 [build-system]

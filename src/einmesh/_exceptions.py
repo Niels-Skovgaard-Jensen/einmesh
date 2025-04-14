@@ -62,9 +62,10 @@ class UnsupportedSpaceTypeError(TypeError):
         )
         super().__init__(message)
 
-class UnknownBackendError(Exception):
-    """Error raised when a tensor type is unknown to einmesh."""
 
-    def __init__(self, tensor_type: type):
-        self.message = f"Tensor type unknown to einmesh: {tensor_type}"
+class UnknownBackendError(Exception):
+    """Error raised when a backend is unknown to einmesh."""
+
+    def __init__(self, backend: str):
+        self.message = f"Backend unknown to einmesh: {backend}"
         super().__init__(self.message)

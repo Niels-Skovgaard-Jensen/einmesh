@@ -1,8 +1,12 @@
-import functools
+from typing import TYPE_CHECKING
 
 from einmesh._backends import NumpyBackend
-from einmesh.parser import einmesh
+from einmesh._parser import _einmesh
+from einmesh.spaces import SpaceType
 
-einmesh = functools.partial(einmesh, backend=NumpyBackend())
+if TYPE_CHECKING:
+    import numpy as np
 
-__all__ = ["einmesh"]
+
+def einmesh(pattern: str, **kwargs: SpaceType) -> np.ndarray:
+    return _einmesh(pattern, backend=NumpyBackend(), **kwargs)  # pyright: ignore[reportReturnType]

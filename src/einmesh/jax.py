@@ -1,8 +1,12 @@
-import functools
+from typing import TYPE_CHECKING
 
 from einmesh._backends import JaxBackend
-from einmesh.parser import einmesh
+from einmesh._parser import _einmesh
+from einmesh.spaces import SpaceType
 
-einmesh = functools.partial(einmesh, backend=JaxBackend())
+if TYPE_CHECKING:
+    import jax
 
-__all__ = ["einmesh"]
+
+def einmesh(pattern: str, **kwargs: SpaceType) -> jax.Array:
+    return _einmesh(pattern, backend=JaxBackend(), **kwargs)  # pyright: ignore[reportReturnType]

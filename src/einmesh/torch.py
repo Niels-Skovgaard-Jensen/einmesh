@@ -1,8 +1,12 @@
-import functools
+from typing import TYPE_CHECKING
 
 from einmesh._backends import TorchBackend
-from einmesh.parser import einmesh
+from einmesh._parser import _einmesh
+from einmesh.spaces import SpaceType
 
-einmesh = functools.partial(einmesh, backend=TorchBackend)
+if TYPE_CHECKING:
+    import torch
 
-__all__ = ["einmesh"]
+
+def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor:
+    return _einmesh(pattern, backend=TorchBackend(), **kwargs)  # pyright: ignore[reportReturnType]

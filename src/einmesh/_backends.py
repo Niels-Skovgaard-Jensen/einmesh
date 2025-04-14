@@ -1,10 +1,11 @@
 import sys
 from abc import ABC, abstractmethod
+from typing import Literal
+
+from einmesh._exceptions import UnknownBackendError
 
 _loaded_backends: dict = {}
 _type2backend: dict = {}
-_debug_importing = False
-
 
 
 def get_backend(tensor) -> "AbstractBackend":
@@ -31,19 +32,15 @@ def get_backend(tensor) -> "AbstractBackend":
         backend_subclasses.append(backend)
 
     for BackendSubclass in backend_subclasses:
-        if _debug_importing:
-            print("Testing for subclass of ", BackendSubclass)
         if BackendSubclass.framework_name not in _loaded_backends and BackendSubclass.framework_name in sys.modules:
             # check that module was already imported. Otherwise it can't be imported
-            if _debug_importing:
-                print("Imported backend for ", BackendSubclass.framework_name)
             backend = BackendSubclass()
             _loaded_backends[backend.framework_name] = backend
             if backend.is_appropriate_type(tensor):
                 _type2backend[_type] = backend
                 return backend
 
-    raise UnknownBackendError(type(tensor))
+    raise UnknownBackendError(type(tensor).__name__)
 
 
 class AbstractBackend(ABC):
@@ -200,7 +197,7 @@ class NumpyBackend(AbstractBackend):
     def shape(self, tensor):
         return tuple(tensor.shape)
 
-    def meshgrid(self, *tensors, indexing="ij"):
+    def meshgrid(self, *tensors, indexing: Literal["ij", "xy"] = "ij"):
         return self.np.meshgrid(*tensors, indexing=indexing)
 
     def size(self, tensor):
@@ -358,19 +355,3 @@ class TorchBackend(AbstractBackend):
     @property
     def bool(self):
         return self.torch.bool
-
-
-if __name__ == "__main__":
-    import jax
-    import numpy as np
-    import torch
-
-    tensor = torch.randn(10, 10)
-    print(get_backend(tensor))
-    tensor = np.random.randn(10, 10)
-    print(get_backend(tensor))
-    seed = 1701
-    num_steps = 100
-    key, subkey = jax.random.split(jax.random.PRNGKey(seed))
-    vec = jax.random.normal(subkey, (num_steps,))
-    print(get_backend(vec))

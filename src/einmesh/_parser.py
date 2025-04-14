@@ -2,15 +2,17 @@ import re
 import typing as t
 
 import einops
+
 from einmesh._backends import AbstractBackend, JaxBackend, NumpyBackend, TorchBackend
-from einmesh.exceptions import (
+from einmesh._exceptions import (
     ArrowError,
     InvalidListTypeError,
     MultipleStarError,
     UnbalancedParenthesesError,
     UndefinedSpaceError,
+    UnderscoreError,
+    UnknownBackendError,
     UnsupportedSpaceTypeError,
-    UnknownBackendError
 )
 from einmesh.spaces import ConstantSpace, ListSpace, SpaceType
 
@@ -91,7 +93,7 @@ def _get_backend(backend: AbstractBackend | str) -> AbstractBackend:
         raise UnknownBackendError(backend)
 
 
-def einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueType):
+def _einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueType):
     """
     Creates multi-dimensional meshgrids using an einops-style pattern string.
 
@@ -294,7 +296,6 @@ def _verify_pattern(pattern: str) -> None:
     Checks for:
     - More than one stacking operator (`*`).
     - Unbalanced parentheses.
-    - Presence of '->' (reserved for potential future use or indicating error).
     # - Presence of underscores ('_') - Currently commented out.
 
     Args:
@@ -310,9 +311,7 @@ def _verify_pattern(pattern: str) -> None:
         raise MultipleStarError()
     if pattern.count("(") != pattern.count(")"):
         raise UnbalancedParenthesesError()
-    # Allow underscore only if it was introduced by renaming duplicates
-    # This check might need refinement if users can legimitately use underscores
-    # if "_" in pattern:
-    #     raise UnderscoreError()
+    if "_" in pattern:
+        raise UnderscoreError()
     if "->" in pattern:
         raise ArrowError()
