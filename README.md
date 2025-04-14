@@ -35,8 +35,12 @@ uv add einmesh
 - **Output**:
     - Returns a tuple of coordinate tensors if no `*` is present.
     - Returns a single stacked tensor if `*` is present.
-- **Backend**: Uses `torch` tensors and `torch.meshgrid` internally.
-
+- **Backend**: Numpy, Torch and JAX are all supported! Just import the einmesh function from the backend like
+```python
+from einmesh.numpy import einmesh # Creates numpy arrays
+from einmesh.jax import einmesh # Creates JAX arrays
+from einmesh.torch import einmesh # Creates Torch Tensors
+```
 
 # Examples
 
@@ -47,8 +51,8 @@ Here are a few examples demonstrating how to use `einmesh`:
 Create a simple 2D grid with linearly spaced points along x and y.
 
 ```python
-import torch
-from einmesh import einmesh, LinSpace
+from einmesh import LinSpace
+from einmesh.numpy import einmesh
 
 # Define the spaces
 x_space = LinSpace(0, 1, 10)  # 10 points from 0 to 1
@@ -58,8 +62,12 @@ y_space = LinSpace(-1, 1, 20) # 20 points from -1 to 1
 # Output: tuple of two tensors, each with shape (10, 20) following 'ij' indexing
 x_coords, y_coords = einmesh("x y", x=x_space, y=y_space)
 
-print(x_coords.shape, y_coords.shape)
-# Output: torch.Size([10, 20]) torch.Size([10, 20])
+print(f"{x_coords.shape=}")
+print(f"{y_coords.shape=}")
+
+# Output:
+# x_coords.shape=(10, 20)
+# y_coords.shape=(10, 20)
 ```
 
 **2. Stacked Coordinates**
@@ -67,9 +75,6 @@ print(x_coords.shape, y_coords.shape)
 Create a 3D grid and stack the coordinate tensors into a single tensor.
 
 ```python
-import torch
-from einmesh import einmesh, LinSpace, LogSpace
-
 x_space = LinSpace(0, 1, 5)
 y_space = LinSpace(0, 1, 6)
 z_space = LogSpace(1, 2, 7)
@@ -79,7 +84,7 @@ z_space = LogSpace(1, 2, 7)
 coords = einmesh("x y z *", x=x_space, y=y_space, z=z_space)
 
 print(coords.shape)
-# Output: torch.Size([5, 6, 7, 3])
+# Output: (5, 6, 7, 3)
 # coords[..., 0] contains x coordinates
 # coords[..., 1] contains y coordinates
 # coords[..., 2] contains z coordinates
@@ -90,8 +95,7 @@ print(coords.shape)
 Generate grid points by sampling from distributions.
 
 ```python
-import torch
-from einmesh import einmesh, UniformDistribution, NormalDistribution
+from einmesh import UniformDistribution, NormalDistribution
 
 # Sample 10 points uniformly between -5 and 5 for x
 x_dist = UniformDistribution(-5, 5, 10)
@@ -103,7 +107,7 @@ y_dist = NormalDistribution(0, 1, 15)
 x_samples, y_samples = einmesh("x y", x=x_dist, y=y_dist)
 
 print(x_samples.shape, y_samples.shape)
-# Output: torch.Size([10, 15]) torch.Size([10, 15])
+# Output: (10, 15) (10, 15)
 # Note: The points along each axis will not be sorted.
 ```
 
@@ -112,9 +116,6 @@ print(x_samples.shape, y_samples.shape)
 Use the same space definition for multiple axes.
 
 ```python
-import torch
-from einmesh import einmesh, LinSpace
-
 space = LinSpace(0, 1, 5)
 
 # 'x' space is used for both the first and second dimensions.
@@ -122,5 +123,5 @@ space = LinSpace(0, 1, 5)
 x0_coords, x1_coords, y_coords = einmesh("x x y", x=space, y=LinSpace(-1, 1, 10))
 
 print(x0_coords.shape, x1_coords.shape, y_coords.shape)
-# Output: torch.Size([5, 5, 10]) torch.Size([5, 5, 10]) torch.Size([5, 5, 10])
+# Output: (5, 5, 10) (5, 5, 10) (5, 5, 10)
 ```
