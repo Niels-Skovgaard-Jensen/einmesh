@@ -5,6 +5,7 @@ from tests.conftest import parametrize_backends
 
 @parametrize_backends
 def test_linear_space(backend):
+    backend = backend()
     x_torch = backend.linspace(0, 1, 10)
 
     x_einmesh = einmesh("i", i=LinSpace(start=0, end=1, num=10), backend=backend)
@@ -14,6 +15,7 @@ def test_linear_space(backend):
 
 @parametrize_backends
 def test_linear_space_2d(backend):
+    backend = backend()
     x_torch = backend.linspace(0, 1, 10)
     y_torch = backend.linspace(0, 1, 10)
 
@@ -27,6 +29,7 @@ def test_linear_space_2d(backend):
 
 @parametrize_backends
 def test_linear_space_8d(backend):
+    backend = backend()
     dims = [backend.linspace(0, 1, 10) for _ in range(8)]
     torch_meshes = backend.meshgrid(*dims, indexing="ij")
 
