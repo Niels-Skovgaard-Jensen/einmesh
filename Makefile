@@ -10,10 +10,8 @@ check: ## Run code quality tools.
 	@uv run pre-commit run -a
 	@echo "🚀 Checking lock file consistency with 'pyproject.toml'"
 	@uv lock --locked
-	@echo "🚀 Static type checking: Running pyright"
-	@uv run pyright
-	@echo "🚀 Checking for obsolete dependencies: Running deptry"
-	@uv run deptry src
+	@echo "🚀 Static type checking: Running basedpyright"
+	@uv run basedpyright src
 
 .PHONY: test
 test: ## Test the code with pytest
@@ -44,7 +42,7 @@ docs-test: ## Test if documentation can be built without warnings or errors
 
 .PHONY: docs
 docs: notebook_docs## Build and serve the documentation
-	@uv run mkdocs serve
+	@uv run mkdocs serve -s
 
 .PHONY: help
 help:

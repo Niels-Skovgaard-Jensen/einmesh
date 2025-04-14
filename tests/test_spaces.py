@@ -1,8 +1,10 @@
+from typing import Any
+
+import einops
 import pytest
-import torch
 
 from einmesh import einmesh
-from einmesh.parser import UndefinedSpaceError
+from einmesh._parser import UndefinedSpaceError
 from einmesh.spaces import (
     ConstantSpace,
     LinSpace,
@@ -12,8 +14,12 @@ from einmesh.spaces import (
     UniformDistribution,
 )
 
+# Try explicit absolute import
+from tests.conftest import parametrize_backends
 
-def test_linear_space():
+
+@parametrize_backends
+def test_linear_space(backend):
     # Test initialization
     lin_space = LinSpace(start=0.0, end=1.0, num=5)
     assert lin_space.start == 0.0
@@ -21,13 +27,14 @@ def test_linear_space():
     assert lin_space.num == 5
 
     # Test sampling
-    samples = lin_space._sample()
-    assert isinstance(samples, torch.Tensor)
+    samples = lin_space._sample(backend)
+    assert backend.is_appropriate_type(samples)
     assert samples.shape == (5,)
-    assert torch.allclose(samples, torch.linspace(0.0, 1.0, 5))
+    assert backend.allclose(samples, backend.linspace(0.0, 1.0, 5))
 
 
-def test_log_space():
+@parametrize_backends
+def test_log_space(backend):
     # Test initialization
     log_space = LogSpace(start=0.0, end=1.0, num=5, base=10)
     assert log_space.start == 0.0
@@ -36,13 +43,14 @@ def test_log_space():
     assert log_space.base == 10
 
     # Test sampling
-    samples = log_space._sample()
-    assert isinstance(samples, torch.Tensor)
+    samples = log_space._sample(backend)
+    assert backend.is_appropriate_type(samples)
     assert samples.shape == (5,)
-    assert torch.allclose(samples, torch.logspace(0.0, 1.0, 5, base=10))
+    assert backend.allclose(samples, backend.logspace(0.0, 1.0, 5, base=10))
 
 
-def test_normal_distribution():
+@parametrize_backends
+def test_normal_distribution(backend):
     # Test initialization
     normal_dist = NormalDistribution(mean=0.0, std=1.0, num=1000)
     assert normal_dist.mean == 0.0
@@ -50,8 +58,8 @@ def test_normal_distribution():
     assert normal_dist.num == 1000
 
     # Test sampling
-    samples = normal_dist._sample()
-    assert isinstance(samples, torch.Tensor)
+    samples = normal_dist._sample(backend)
+    assert backend.is_appropriate_type(samples)
     assert samples.shape == (1000,)
 
     # Statistical tests (approximate due to random nature)
@@ -59,7 +67,8 @@ def test_normal_distribution():
     assert abs(samples.std().item() - normal_dist.std) < 0.1
 
 
-def test_uniform_distribution():
+@parametrize_backends
+def test_uniform_distribution(backend):
     # Test initialization
     uniform_dist = UniformDistribution(low=-1.0, high=1.0, num=1000)
     assert uniform_dist.low == -1.0
@@ -67,127 +76,140 @@ def test_uniform_distribution():
     assert uniform_dist.num == 1000
 
     # Test sampling
-    samples = uniform_dist._sample()
-    assert isinstance(samples, torch.Tensor)
-    assert samples.shape == torch.Size([1000])
+    samples = uniform_dist._sample(backend)
+    assert backend.is_appropriate_type(samples)
+    assert backend.shape(samples) == (1000,)
 
-    # Check bounds
-    assert torch.all(samples >= -1.0)
-    assert torch.all(samples <= 1.0)
+    # Check bounds - adapt comparison for backend
+    assert backend.all(samples >= -1.0)
+    assert backend.all(samples <= 1.0)
 
 
-def test_constant_space():
+@parametrize_backends
+def test_constant_space(backend):
     # Test initialization
     const_space = ConstantSpace(value=5.0, num=3)
     assert const_space.value == 5.0
     assert const_space.num == 3
 
     # Test sampling
-    samples = const_space._sample()
-    assert isinstance(samples, torch.Tensor)
+    samples = const_space._sample(backend)
+    assert backend.is_appropriate_type(samples)
     assert samples.shape == (3,)
-    assert torch.all(samples == 5.0)
+    assert backend.allclose(samples, backend.tensor([5.0, 5.0, 5.0]))
 
     # Test default num=1
     const_space_single = ConstantSpace(value=-2.0)
     assert const_space_single.num == 1
-    samples_single = const_space_single._sample()
+    samples_single = const_space_single._sample(backend)
     assert samples_single.shape == (1,)
     assert samples_single.item() == -2.0
 
 
-def test_list_space():
+@parametrize_backends
+def test_list_space(backend):
     # Test initialization
     test_values = [1.1, 2.2, 3.3, 4.4]
     list_space = ListSpace(values=test_values)
     assert list_space.values == test_values
 
     # Test sampling
-    samples = list_space._sample()
-    assert isinstance(samples, torch.Tensor)
+    samples = list_space._sample(backend)
+    assert backend.is_appropriate_type(samples)
     assert samples.shape == (len(test_values),)
-    assert torch.allclose(samples, torch.tensor(test_values))
+
+    # Convert test values to tensor using appropriate backend
+    expected = backend.tensor(test_values)
+    assert backend.allclose(samples, expected)
 
 
-def test_einmesh_integration():
+@parametrize_backends
+def test_einmesh_integration(backend):
     # Test einmesh with multiple spaces
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LogSpace(0.0, 1.0, 3)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
-    assert isinstance(meshes[0], torch.Tensor)
-    assert isinstance(meshes[1], torch.Tensor)
+    assert backend.is_appropriate_type(meshes[0])
+    assert backend.is_appropriate_type(meshes[1])
     assert meshes[0].shape == (5, 3)
     assert meshes[1].shape == (5, 3)
 
 
-def test_linsspace_integration():
+@parametrize_backends
+def test_linsspace_integration(backend):
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
 
 
-def test_logspace_integration():
+@parametrize_backends
+def test_logspace_integration(backend):
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LogSpace(0.0, 1.0, 3)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
 
 
-def test_normaldistribution_integration():
+@parametrize_backends
+def test_normaldistribution_integration(backend):
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = NormalDistribution(0.0, 1.0, 3)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
 
 
-def test_uniformdistribution_integration():
+@parametrize_backends
+def test_uniformdistribution_integration(backend):
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = UniformDistribution(0.0, 1.0, 3)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
 
 
-def test_constantspace_integration():
+@parametrize_backends
+def test_constantspace_integration(backend):
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = ConstantSpace(value=7.0, num=3)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
     assert meshes[0].shape == (5, 3)
     assert meshes[1].shape == (5, 3)
     # Check if y values are constant
-    assert torch.all(meshes[1] == 7.0)
+    assert backend.all(meshes[1] == 7.0)
 
 
-def test_listspace_integration():
-    x_space = LinSpace(0.0, 1.0, 5)
-    list_values = [10.0, 20.0, 30.0]
-    y_space = ListSpace(values=list_values)
+@parametrize_backends
+def test_listspace_integration(backend) -> None:
+    x_space: LinSpace = LinSpace(start=0.0, end=1.0, num=5)
+    list_values: list[float] = [10.0, 20.0, 30.0]
+    y_space: ListSpace = ListSpace(values=list_values)
 
-    meshes = einmesh("x y", x=x_space, y=y_space)
+    meshes: Any | tuple[Any, ...] = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
     assert meshes[0].shape == (5, 3)
     assert meshes[1].shape == (5, 3)
     # Check if y values match the list across the x dimension
-    expected_y = torch.tensor(list_values).unsqueeze(0).expand(5, -1)
-    assert torch.allclose(meshes[1], expected_y)
+    expected_y = einops.repeat(backend.tensor(list_values), "n -> h n", h=5)
+    assert backend.allclose(meshes[1], expected_y)
 
 
-def test_invalid_space():
+@parametrize_backends
+def test_invalid_space(backend):
     with pytest.raises(UndefinedSpaceError) as exc_info:
-        einmesh("x y", x=LinSpace(0.0, 1.0, 5))  # Missing y space
+        einmesh("x y", x=LinSpace(0.0, 1.0, 5), backend=backend)  # Missing y space
     assert str(exc_info.value) == "Undefined space: y"

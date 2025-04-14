@@ -17,9 +17,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "einmesh",
     "einops>=0.7.0",
-    "numpy>=2.0",
-    "torch>=1.0",
 ]
 
 [project.urls]
@@ -28,7 +27,22 @@ Repository = "https://github.com/niels-skovgaard-jensen/einmesh"
 Documentation = "https://einmesh.xyz"
 
 [dependency-groups]
+jax = [
+    "jax>=0.5.3",
+    "pytest-cov>=4.0.0",
+]
+torch = [
+    "torch>=1.0",
+    "pytest-cov>=4.0.0",
+]
+numpy = [
+    "numpy>=2.0",
+    "pytest-cov>=4.0.0",
+]
 dev = [
+    "jax>=0.5.3",
+    "numpy>=2.0",
+    "torch>=1.0",
     "pytest>=7.2.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
@@ -40,10 +54,10 @@ dev = [
     "mkdocstrings[python]>=0.26.1",
     "markdown-include>=0.8.1",
     "mkdocs-jupyter>=0.25.1",
-    "pyright>=1.1.396",
     "pygments>=2.19.1",
     "hatch>=1.14.0",
     "matplotlib>=3.10.1",
+    "basedpyright>=1.28.5",
 ]
 
 [build-system]
@@ -142,12 +156,6 @@ select = [
     "RUF",
     # tryceratops
     "TRY",
-]
-ignore = [
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
 ]
 
 [tool.ruff.lint.per-file-ignores]
