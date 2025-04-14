@@ -1,3 +1,4 @@
+import importlib.util
 import sys
 from abc import ABC, abstractmethod
 from typing import Literal
@@ -50,6 +51,11 @@ class AbstractBackend(ABC):
 
     def is_appropriate_type(self, tensor):
         """helper method should recognize tensors it can handle"""
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def is_available() -> bool:
         raise NotImplementedError()
 
     def __repr__(self):
@@ -162,6 +168,10 @@ class NumpyBackend(AbstractBackend):
 
         self.np = numpy
 
+    @staticmethod
+    def is_available() -> bool:
+        return importlib.util.find_spec(name="numpy") is not None
+
     def is_appropriate_type(self, tensor):
         return isinstance(tensor, self.np.ndarray)
 
@@ -256,6 +266,10 @@ class JaxBackend(NumpyBackend):
         self._random = jax.random
         self.key = jax.random.PRNGKey(0)
 
+    @staticmethod
+    def is_available() -> bool:
+        return importlib.util.find_spec(name="jax") is not None
+
     def rand(self, size):
         new_key, subkey = self._random.split(self.key)
         self.key = new_key
@@ -274,6 +288,10 @@ class TorchBackend(AbstractBackend):
         import torch
 
         self.torch = torch
+
+    @staticmethod
+    def is_available() -> bool:
+        return importlib.util.find_spec(name="torch") is not None
 
     def is_appropriate_type(self, tensor):
         return isinstance(tensor, self.torch.Tensor)

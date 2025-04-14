@@ -1,9 +1,9 @@
+from typing import Any
+
 import einops
 import pytest
-import torch
 
 from einmesh import einmesh
-from einmesh._backends import JaxBackend, NumpyBackend, TorchBackend
 from einmesh._parser import UndefinedSpaceError
 from einmesh.spaces import (
     ConstantSpace,
@@ -78,29 +78,11 @@ def test_uniform_distribution(backend):
     # Test sampling
     samples = uniform_dist._sample(backend)
     assert backend.is_appropriate_type(samples)
-    # Need to adapt shape check based on backend
-    if isinstance(backend, TorchBackend):
-        assert samples.shape == torch.Size([1000])
-    elif isinstance(backend, NumpyBackend):
-        assert samples.shape == (1000,)
-    elif isinstance(backend, JaxBackend):
-        # JAX shapes might require specific handling depending on usage
-        assert samples.shape == (1000,)
-    else:
-        pytest.fail("Unhandled backend type")
+    assert backend.shape(samples) == (1000,)
 
     # Check bounds - adapt comparison for backend
-    if isinstance(backend, TorchBackend):
-        assert torch.all(samples >= -1.0)
-        assert torch.all(samples <= 1.0)
-    elif isinstance(backend, (NumpyBackend, JaxBackend)):
-        # Use numpy comparison for numpy/jax arrays
-        import numpy as np
-
-        assert np.all(samples >= -1.0)
-        assert np.all(samples <= 1.0)
-    else:
-        pytest.fail("Unhandled backend type for comparison")
+    assert backend.all(samples >= -1.0)
+    assert backend.all(samples <= 1.0)
 
 
 @parametrize_backends
@@ -211,12 +193,12 @@ def test_constantspace_integration(backend):
 
 
 @parametrize_backends
-def test_listspace_integration(backend):
-    x_space = LinSpace(0.0, 1.0, 5)
-    list_values = [10.0, 20.0, 30.0]
-    y_space = ListSpace(values=list_values)
+def test_listspace_integration(backend) -> None:
+    x_space: LinSpace = LinSpace(start=0.0, end=1.0, num=5)
+    list_values: list[float] = [10.0, 20.0, 30.0]
+    y_space: ListSpace = ListSpace(values=list_values)
 
-    meshes = einmesh("x y", x=x_space, y=y_space, backend=backend)
+    meshes: Any | tuple[Any, ...] = einmesh("x y", x=x_space, y=y_space, backend=backend)
 
     assert len(meshes) == 2
     assert meshes[0].shape == (5, 3)

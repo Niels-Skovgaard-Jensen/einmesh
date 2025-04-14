@@ -8,5 +8,5 @@ if TYPE_CHECKING:
     import numpy as np
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> np.ndarray:
+def einmesh(pattern: str, **kwargs: SpaceType) -> "np.ndarray":
     return _einmesh(pattern, backend=NumpyBackend(), **kwargs)  # pyright: ignore[reportReturnType]

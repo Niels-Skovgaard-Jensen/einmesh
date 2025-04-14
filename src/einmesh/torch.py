@@ -8,5 +8,5 @@ if TYPE_CHECKING:
     import torch
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor:
+def einmesh(pattern: str, **kwargs: SpaceType) -> "torch.Tensor":
     return _einmesh(pattern, backend=TorchBackend(), **kwargs)  # pyright: ignore[reportReturnType]

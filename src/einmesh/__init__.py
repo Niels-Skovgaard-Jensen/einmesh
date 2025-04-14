@@ -10,12 +10,12 @@ from einmesh.spaces import (
 )
 
 __all__ = [
+    "ConstantSpace",
     "LinSpace",
+    "ListSpace",
     "LogSpace",
+    "NormalDistribution",
     "SpaceType",
     "UniformDistribution",
-    "NormalDistribution",
-    "ConstantSpace",
-    "ListSpace",
     "einmesh",
 ]

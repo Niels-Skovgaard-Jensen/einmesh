@@ -8,5 +8,5 @@ if TYPE_CHECKING:
     import jax
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> jax.Array:
+def einmesh(pattern: str, **kwargs: SpaceType) -> "jax.Array":
     return _einmesh(pattern, backend=JaxBackend(), **kwargs)  # pyright: ignore[reportReturnType]

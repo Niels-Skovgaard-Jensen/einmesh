@@ -595,9 +595,24 @@ dev = [
     { name = "torch" },
     { name = "tox-uv" },
 ]
+jax = [
+    { name = "jax" },
+    { name = "pytest-cov" },
+]
+numpy = [
+    { name = "numpy" },
+    { name = "pytest-cov" },
+]
+torch = [
+    { name = "pytest-cov" },
+    { name = "torch" },
+]
 
 [package.metadata]
-requires-dist = [{ name = "einops", specifier = ">=0.7.0" }]
+requires-dist = [
+    { name = "einmesh" },
+    { name = "einops", specifier = ">=0.7.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -619,6 +634,18 @@ dev = [
     { name = "ruff", specifier = ">=0.9.2" },
     { name = "torch", specifier = ">=1.0" },
     { name = "tox-uv", specifier = ">=1.11.3" },
+]
+jax = [
+    { name = "jax", specifier = ">=0.5.3" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
+]
+numpy = [
+    { name = "numpy", specifier = ">=2.0" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
+]
+torch = [
+    { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "torch", specifier = ">=1.0" },
 ]
 
 [[package]]
