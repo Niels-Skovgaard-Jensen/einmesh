@@ -4,20 +4,22 @@
 
 ## einops-style multi dimensional meshgrids
 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/einmesh)
 [![Release](https://img.shields.io/github/v/release/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/v/release/niels-skovgaard-jensen/einmesh)
 [![Build status](https://img.shields.io/github/actions/workflow/status/niels-skovgaard-jensen/einmesh/main.yml?branch=main)](https://github.com/niels-skovgaard-jensen/einmesh/actions/workflows/main.yml?query=branch%3Amain)
 [![Commit activity](https://img.shields.io/github/commit-activity/m/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/commit-activity/m/niels-skovgaard-jensen/einmesh)
 [![License](https://img.shields.io/github/license/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/license/niels-skovgaard-jensen/einmesh)
 
 
+
 # Installation
-Simple installation from pip:
-```
-pip install einmesh
-```
-or `uv`
+Simple installation from uv:
 ```
 uv add einmesh
+```
+or pip:
+```
+pip install einmesh
 ```
 # Features
 - **einops-style Meshgrid Generation**: The core function `einmesh` allows creating multi-dimensional meshgrids (like `torch.meshgrid`) using a concise string pattern similar to `einops`.
