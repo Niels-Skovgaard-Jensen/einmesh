@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib.util
 import sys
 from abc import ABC, abstractmethod
@@ -9,7 +11,7 @@ _loaded_backends: dict = {}
 _type2backend: dict = {}
 
 
-def get_backend(tensor) -> "AbstractBackend":
+def get_backend(tensor) -> AbstractBackend:
     """
     Takes a correct backend (e.g. numpy backend if tensor is numpy.ndarray) for a tensor.
     If needed, imports package and creates backend
@@ -41,7 +43,7 @@ def get_backend(tensor) -> "AbstractBackend":
                 _type2backend[_type] = backend
                 return backend
 
-    raise UnknownBackendError(type(tensor).__name__)
+    raise UnknownBackendError(backend=type(tensor).__name__)
 
 
 class AbstractBackend(ABC):
@@ -91,8 +93,6 @@ class AbstractBackend(ABC):
 
     @abstractmethod
     def concat(self, tensors, axis: int):
-        """concatenates tensors along axis.
-        Assume identical across tensors: devices, dtypes and shapes except selected axis."""
         raise NotImplementedError()
 
     @abstractmethod
@@ -157,6 +157,46 @@ class AbstractBackend(ABC):
     @property
     @abstractmethod
     def bool(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def abs(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def add(self, x, summand):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def sub(self, x, subtrahend):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def mul(self, x, multiplier):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def truediv(self, x, divisor):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def mod(self, x, divisor):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def floordiv(self, x, divisor):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def pos(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def neg(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def pow(self, base, exponent):
         raise NotImplementedError()
 
 
@@ -250,6 +290,36 @@ class NumpyBackend(AbstractBackend):
     @property
     def bool(self):
         return self.np.bool_
+
+    def abs(self, x):
+        return self.np.abs(x)
+
+    def add(self, x, summand):
+        return self.np.add(x, summand)
+
+    def sub(self, x, subtrahend):
+        return self.np.subtract(x, subtrahend)
+
+    def mul(self, x, multiplier):
+        return self.np.multiply(x, multiplier)
+
+    def truediv(self, x, divisor):
+        return self.np.true_divide(x, divisor)
+
+    def mod(self, x, divisor):
+        return self.np.mod(x, divisor)
+
+    def floordiv(self, x, divisor):
+        return self.np.floor_divide(x, divisor)
+
+    def pow(self, base, exponent):
+        return self.np.power(base, exponent)
+
+    def pos(self, x):
+        return self.np.positive(x)
+
+    def neg(self, x):
+        return self.np.negative(x)
 
 
 class JaxBackend(NumpyBackend):
@@ -373,3 +443,33 @@ class TorchBackend(AbstractBackend):
     @property
     def bool(self):
         return self.torch.bool
+
+    def abs(self, x):
+        return self.torch.abs(x)
+
+    def add(self, x, summand):
+        return self.torch.add(x, summand)
+
+    def sub(self, x, subtrahend):
+        return self.torch.sub(x, subtrahend)
+
+    def mul(self, x, multiplier):
+        return self.torch.mul(x, multiplier)
+
+    def truediv(self, x, divisor):
+        return self.torch.true_divide(x, divisor)
+
+    def mod(self, x, divisor):
+        return self.torch.fmod(x, divisor)
+
+    def floordiv(self, x, divisor):
+        return self.torch.floor_divide(x, divisor)
+
+    def pow(self, base, exponent):
+        return self.torch.pow(base, exponent)
+
+    def pos(self, x):
+        return self.torch.positive(x)
+
+    def neg(self, x):
+        return self.torch.negative(x)

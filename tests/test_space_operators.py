@@ -49,6 +49,7 @@ def test_truediv_with_float(backend):
     assert backend.allclose(divided_linspace._sample(backend), backend.linspace(0.0, 0.5, 5))
 
 
+@parametrize_backends
 def test_mod_with_float(backend):
     backend = backend()
 
@@ -60,6 +61,7 @@ def test_mod_with_float(backend):
     assert backend.allclose(mod_linspace._sample(backend), backend.linspace(0.0, 1.0, 5) % 2.0)
 
 
+@parametrize_backends
 def test_floordiv_with_float(backend):
     backend = backend()
 
@@ -71,6 +73,7 @@ def test_floordiv_with_float(backend):
     assert backend.allclose(floordiv_linspace._sample(backend), backend.linspace(0.0, 1.0, 5) // 2.0)
 
 
+@parametrize_backends
 def test_pow_with_float(backend):
     backend = backend()
 

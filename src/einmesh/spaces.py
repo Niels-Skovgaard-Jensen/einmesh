@@ -1,11 +1,82 @@
-from dataclasses import dataclass
-from typing import Union
+from __future__ import annotations
+
+import math
+from abc import ABC, abstractmethod
+from copy import deepcopy
+from dataclasses import dataclass, field
 
 from einmesh._backends import AbstractBackend
+from einmesh._operators import BackendOperator, OperatorFactory
 
 
 @dataclass
-class LogSpace:
+class SpaceType(ABC):
+    """Base class for all space types."""
+
+    num: int
+
+    def __post_init__(self) -> None:
+        self.operators: list[BackendOperator] = []
+
+    def __abs__(self) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.abs())
+        return self_copy
+
+    def __add__(self, other) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.add(value=other))
+        return self_copy
+
+    def __sub__(self, other) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.sub(value=other))
+        return self_copy
+
+    def __mul__(self, other) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.mul(value=other))
+        return self_copy
+
+    def __truediv__(self, other) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.div(value=other))
+        return self_copy
+
+    def __neg__(self) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.neg())
+        return self_copy
+
+    def __pos__(self) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.pos())
+        return self_copy
+
+    def __pow__(self, other) -> SpaceType:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.pow(exponent=other))
+        return self_copy
+
+    @abstractmethod
+    def _generate_samples(self, backend: AbstractBackend):
+        """Create a new space type."""
+        ...
+
+    def _sample(self, backend: AbstractBackend):
+        """Sample the space type."""
+        sample = self._generate_samples(backend)
+        return self._apply_operators(sample, backend)
+
+    def _apply_operators(self, sample, backend: AbstractBackend):
+        """Apply the operators to the space type."""
+        for operator in self.operators:
+            sample = operator(x=sample, backend=backend)
+        return sample
+
+
+@dataclass
+class LogSpace(SpaceType):
     """
     Represents a sequence of points spaced logarithmically.
 
@@ -25,13 +96,44 @@ class LogSpace:
     num: int
     base: float = 10
 
-    def _sample(self, backend: AbstractBackend):
+    def _generate_samples(self, backend: AbstractBackend):
         """Generates the logarithmically spaced points."""
-        return backend.logspace(self.start, self.end, self.num, base=self.base)
+        sample = backend.logspace(self.start, self.end, self.num, base=self.base)
+        return self._apply_operators(sample, backend)
 
 
 @dataclass
-class LinSpace:
+class LgSpace(LogSpace):
+    """
+    Represents a sequence of points spaced in base 2.
+    """
+
+    start: float
+    end: float
+    num: int
+    base: float = field(init=False, default=2)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "base", 2)
+
+
+@dataclass
+class LnSpace(LogSpace):
+    """
+    Represents a sequence of points spaced in base e.
+    """
+
+    start: float
+    end: float
+    num: int
+    base: float = field(init=False, default=math.e)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "base", math.e)
+
+
+@dataclass
+class LinSpace(SpaceType):
     """
     Represents a sequence of points spaced linearly.
 
@@ -48,13 +150,13 @@ class LinSpace:
     end: float
     num: int
 
-    def _sample(self, backend: AbstractBackend):
+    def _generate_samples(self, backend: AbstractBackend):
         """Generates the linearly spaced points."""
         return backend.linspace(self.start, self.end, self.num)
 
 
 @dataclass
-class ConstantSpace:
+class ConstantSpace(SpaceType):
     """
     Represents a constant value repeated multiple times.
 
@@ -67,15 +169,18 @@ class ConstantSpace:
     """
 
     value: float
-    num: int = 1
+    num: int
 
-    def _sample(self, backend: AbstractBackend):
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "num", 1)
+
+    def _generate_samples(self, backend: AbstractBackend):
         """Generates a tensor with the constant value repeated."""
         return backend.full((self.num,), self.value)
 
 
 @dataclass
-class ListSpace:
+class ListSpace(SpaceType):
     """
     Represents a predefined list of values.
 
@@ -84,17 +189,22 @@ class ListSpace:
 
     Attributes:
         values: A list of float values to be converted into a tensor.
+        num: The number of points, automatically set to length of values.
     """
 
     values: list[float]
+    num: int = field(init=False)
 
-    def _sample(self, backend: AbstractBackend):
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "num", len(self.values))
+
+    def _generate_samples(self, backend: AbstractBackend):
         """Generates a tensor from the provided list of values."""
         return backend.tensor(self.values)
 
 
 @dataclass
-class NormalDistribution:
+class NormalDistribution(SpaceType):
     """
     Represents a sampling from a normal (Gaussian) distribution.
 
@@ -111,13 +221,13 @@ class NormalDistribution:
     std: float
     num: int
 
-    def _sample(self, backend: AbstractBackend):
+    def _generate_samples(self, backend: AbstractBackend):
         """Generates samples from the normal distribution."""
         return backend.normal(self.mean, self.std, size=(self.num,))
 
 
 @dataclass
-class UniformDistribution:
+class UniformDistribution(SpaceType):
     """
     Represents a sampling from a uniform distribution.
 
@@ -134,17 +244,7 @@ class UniformDistribution:
     high: float
     num: int
 
-    def _sample(self, backend: AbstractBackend):
+    def _generate_samples(self, backend: AbstractBackend):
         """Generates samples from the uniform distribution."""
         # torch.rand samples from [0, 1), so we scale and shift.
         return backend.rand(self.num) * (self.high - self.low) + self.low
-
-
-SpaceType = Union[
-    LogSpace,
-    LinSpace,
-    NormalDistribution,
-    UniformDistribution,
-    ConstantSpace,
-    ListSpace,
-]
