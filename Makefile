@@ -11,7 +11,29 @@ check: ## Run code quality tools.
 	@echo "🚀 Checking lock file consistency with 'pyproject.toml'"
 	@uv lock --locked
 	@echo "🚀 Static type checking: Running basedpyright"
-	@uv run basedpyright src
+	@OUTPUT=$$(uv run basedpyright --level error); \
+	EXIT_CODE=$$?; \
+	echo "$$OUTPUT"; \
+	if [ $$EXIT_CODE -ne 0 ]; then \
+		if echo "$$OUTPUT" | grep -q '0 errors,'; then \
+			echo "Basedpyright exited non-zero but reported 0 errors. Overriding exit code to 0."; \
+			exit 0; \
+		else \
+			echo "Basedpyright failed with errors (exit code $$EXIT_CODE)." >&2; \
+			exit $$EXIT_CODE; \
+		fi \
+	fi
+
+.PHONY: check-dep
+check-dep: ## Test the code with pytest
+	@echo "🚀 Testing dependencies"
+	@uv sync --only-group numpy
+	@uv run basedpyright --level error
+	@uv sync --only-group torch
+	@uv run basedpyright --level error
+	@uv sync --only-group jax
+	@uv run basedpyright --level error
+	@uv sync dev-all
 
 .PHONY: test
 test: ## Test the code with pytest

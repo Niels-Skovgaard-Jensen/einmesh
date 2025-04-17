@@ -115,9 +115,8 @@ deploy_force = "convert && mkdocs build --clean --strict && mkdocs gh-deploy --f
 
 
 
-[tool.pyright]
+[tool.basedpyright]
 include = ["src"]
-typeCheckingMode = "basic"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

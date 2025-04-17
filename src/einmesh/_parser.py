@@ -274,7 +274,7 @@ def _generate_samples(sampling_list: list[str], backend: AbstractBackend, **kwar
     Raises:
         UndefinedSpaceError: If a name in `sampling_list` is not found in `kwargs`.
     """
-    lin_samples: list = []
+    lin_samples: list[Any] = []
     dim_shapes: dict[str, int] = {}
     # Iterate using the provided sampling_list to ensure correct order
     for p in sampling_list:
