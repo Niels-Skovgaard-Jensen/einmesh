@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Self, override
+from typing import Any
 
 from einmesh._backends import AbstractBackend
 from einmesh._operators import BackendOperator, OperatorFactory
@@ -16,64 +16,64 @@ class SpaceType(ABC):
 
     operators: list[BackendOperator] = field(init=False, default_factory=list)
 
-    def __abs__(self) -> Self:
+    def __abs__(self) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.abs())
         return self_copy
 
-    def __add__(self, other) -> Self:
+    def __add__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.add(value=other))
         return self_copy
 
-    def __radd__(self, other) -> Self:
+    def __radd__(self, other) -> SpaceType:
         return self.__add__(other)
 
-    def __sub__(self, other) -> Self:
+    def __sub__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.sub(value=other))
         return self_copy
 
-    def __rsub__(self, other) -> Self:
+    def __rsub__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.insert(0, OperatorFactory.neg())
         self_copy.operators.insert(1, OperatorFactory.add(value=other))
         return self_copy
 
-    def __mul__(self, other) -> Self:
+    def __mul__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.mul(value=other))
         return self_copy
 
-    def __rmul__(self, other) -> Self:
+    def __rmul__(self, other) -> SpaceType:
         return self.__mul__(other)
 
-    def __mod__(self, other) -> Self:
+    def __mod__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.mod(value=other))
         return self_copy
 
-    def __floordiv__(self, other) -> Self:
+    def __floordiv__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.floor_div(value=other))
         return self_copy
 
-    def __truediv__(self, other) -> Self:
+    def __truediv__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.div(value=other))
         return self_copy
 
-    def __neg__(self) -> Self:
+    def __neg__(self) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.neg())
         return self_copy
 
-    def __pos__(self) -> Self:
+    def __pos__(self) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.pos())
         return self_copy
 
-    def __pow__(self, other) -> Self:
+    def __pow__(self, other) -> SpaceType:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.pow(exponent=other))
         return self_copy
@@ -219,7 +219,6 @@ class ListSpace(SpaceType):
     def __post_init__(self) -> None:
         object.__setattr__(self, "num", len(self.values))
 
-    @override
     def _generate_samples(self, backend: AbstractBackend):
         """Generates a tensor from the provided list of values."""
         return backend.tensor(self.values)

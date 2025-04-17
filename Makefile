@@ -11,14 +11,18 @@ check: ## Run code quality tools.
 	@echo "🚀 Checking lock file consistency with 'pyproject.toml'"
 	@uv lock --locked
 	@echo "🚀 Static type checking: Running basedpyright"
+	@uv run basedpyright --level error
+
+.PHONY: check-dep
+check-dep: ## Test the code with pytest
+	@echo "🚀 Testing dependencies"
 	@uv sync --only-group numpy
 	@uv run basedpyright --level error
 	@uv sync --only-group torch
 	@uv run basedpyright --level error
 	@uv sync --only-group jax
 	@uv run basedpyright --level error
-	@uv sync --only-group dev-all
-	@uv run basedpyright --level error
+	@uv sync dev-all
 
 .PHONY: test
 test: ## Test the code with pytest
