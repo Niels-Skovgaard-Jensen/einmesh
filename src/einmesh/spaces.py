@@ -4,6 +4,7 @@ import math
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field
+from typing import Any, Self, override
 
 from einmesh._backends import AbstractBackend
 from einmesh._operators import BackendOperator, OperatorFactory
@@ -13,47 +14,66 @@ from einmesh._operators import BackendOperator, OperatorFactory
 class SpaceType(ABC):
     """Base class for all space types."""
 
-    num: int
+    operators: list[BackendOperator] = field(init=False, default_factory=list)
 
-    def __post_init__(self) -> None:
-        self.operators: list[BackendOperator] = []
-
-    def __abs__(self) -> SpaceType:
+    def __abs__(self) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.abs())
         return self_copy
 
-    def __add__(self, other) -> SpaceType:
+    def __add__(self, other) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.add(value=other))
         return self_copy
 
-    def __sub__(self, other) -> SpaceType:
+    def __radd__(self, other) -> Self:
+        return self.__add__(other)
+
+    def __sub__(self, other) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.sub(value=other))
         return self_copy
 
-    def __mul__(self, other) -> SpaceType:
+    def __rsub__(self, other) -> Self:
+        self_copy = deepcopy(self)
+        self_copy.operators.insert(0, OperatorFactory.neg())
+        self_copy.operators.insert(1, OperatorFactory.add(value=other))
+        return self_copy
+
+    def __mul__(self, other) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.mul(value=other))
         return self_copy
 
-    def __truediv__(self, other) -> SpaceType:
+    def __rmul__(self, other) -> Self:
+        return self.__mul__(other)
+
+    def __mod__(self, other) -> Self:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.mod(value=other))
+        return self_copy
+
+    def __floordiv__(self, other) -> Self:
+        self_copy = deepcopy(self)
+        self_copy.operators.append(OperatorFactory.floor_div(value=other))
+        return self_copy
+
+    def __truediv__(self, other) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.div(value=other))
         return self_copy
 
-    def __neg__(self) -> SpaceType:
+    def __neg__(self) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.neg())
         return self_copy
 
-    def __pos__(self) -> SpaceType:
+    def __pos__(self) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.pos())
         return self_copy
 
-    def __pow__(self, other) -> SpaceType:
+    def __pow__(self, other) -> Self:
         self_copy = deepcopy(self)
         self_copy.operators.append(OperatorFactory.pow(exponent=other))
         return self_copy
@@ -63,12 +83,12 @@ class SpaceType(ABC):
         """Create a new space type."""
         ...
 
-    def _sample(self, backend: AbstractBackend):
+    def _sample(self, backend: AbstractBackend) -> Any:
         """Sample the space type."""
         sample = self._generate_samples(backend)
         return self._apply_operators(sample, backend)
 
-    def _apply_operators(self, sample, backend: AbstractBackend):
+    def _apply_operators(self, sample, backend: AbstractBackend) -> Any:
         """Apply the operators to the space type."""
         for operator in self.operators:
             sample = operator(x=sample, backend=backend)
@@ -169,10 +189,11 @@ class ConstantSpace(SpaceType):
     """
 
     value: float
-    num: int
+    num: int | None = None
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "num", 1)
+        if self.num is None:
+            object.__setattr__(self, "num", 1)
 
     def _generate_samples(self, backend: AbstractBackend):
         """Generates a tensor with the constant value repeated."""
@@ -198,13 +219,21 @@ class ListSpace(SpaceType):
     def __post_init__(self) -> None:
         object.__setattr__(self, "num", len(self.values))
 
+    @override
     def _generate_samples(self, backend: AbstractBackend):
         """Generates a tensor from the provided list of values."""
         return backend.tensor(self.values)
 
 
 @dataclass
-class NormalDistribution(SpaceType):
+class Distribution(SpaceType):
+    """Base class for all distribution spaces."""
+
+    ...
+
+
+@dataclass
+class NormalDistribution(Distribution):
     """
     Represents a sampling from a normal (Gaussian) distribution.
 
@@ -227,7 +256,7 @@ class NormalDistribution(SpaceType):
 
 
 @dataclass
-class UniformDistribution(SpaceType):
+class UniformDistribution(Distribution):
     """
     Represents a sampling from a uniform distribution.
 

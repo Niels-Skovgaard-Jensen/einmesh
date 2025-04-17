@@ -9,9 +9,11 @@ def test_addition_with_float(backend):
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
     added_linspace = linspace + 1.0
+    added_linspace_reverse = 1.0 + linspace
 
     assert backend.allclose(linspace._sample(backend), backend.linspace(0.0, 1.0, 5))
     assert backend.allclose(added_linspace._sample(backend), backend.linspace(1.0, 2.0, 5))
+    assert backend.allclose(added_linspace_reverse._sample(backend), backend.linspace(1.0, 2.0, 5))
 
 
 @parametrize_backends
@@ -38,6 +40,7 @@ def test_multiplication_with_float(backend):
     assert backend.allclose(multiplied_linspace._sample(backend), backend.linspace(0.0, 2.0, 5))
 
 
+@parametrize_backends
 def test_truediv_with_float(backend):
     backend = backend()
 
@@ -93,7 +96,7 @@ def test_negation(backend):
 
     negated_linspace = -linspace
 
-    assert backend.allclose(negated_linspace._sample(backend), backend.linspace(-1.0, 0.0, 5))
+    assert backend.allclose(negated_linspace._sample(backend), backend.linspace(0.0, -1.0, 5))
 
 
 @parametrize_backends

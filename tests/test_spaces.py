@@ -100,7 +100,7 @@ def test_constant_space(backend):
     # Test sampling
     samples = const_space._sample(backend)
     assert backend.is_appropriate_type(samples)
-    assert samples.shape == (3,)
+    assert backend.shape(samples) == (3,)
     assert backend.allclose(samples, backend.tensor([5.0, 5.0, 5.0]))
 
     # Test default num=1
@@ -108,7 +108,7 @@ def test_constant_space(backend):
     assert const_space_single.num == 1
     samples_single = const_space_single._sample(backend)
     assert samples_single.shape == (1,)
-    assert samples_single.item() == -2.0
+    assert backend.allclose(samples_single, backend.tensor([-2.0]))
 
 
 @parametrize_backends

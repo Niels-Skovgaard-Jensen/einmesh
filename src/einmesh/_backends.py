@@ -3,12 +3,13 @@ from __future__ import annotations
 import importlib.util
 import sys
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Any, Literal
 
 from einmesh._exceptions import UnknownBackendError
+from einmesh.types import Number
 
-_loaded_backends: dict = {}
-_type2backend: dict = {}
+_loaded_backends: dict[str, AbstractBackend] = {}
+_type2backend: dict[type, AbstractBackend] = {}
 
 
 def get_backend(tensor) -> AbstractBackend:
@@ -88,7 +89,7 @@ class AbstractBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def rand(self, size):
+    def rand(self, size) -> Any:
         raise NotImplementedError()
 
     @abstractmethod
@@ -104,7 +105,7 @@ class AbstractBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def meshgrid(self, *tensors, indexing="ij"):
+    def meshgrid(self, *tensors, indexing: Literal["ij", "xy"] = "ij"):
         raise NotImplementedError()
 
     @abstractmethod
@@ -197,6 +198,14 @@ class AbstractBackend(ABC):
 
     @abstractmethod
     def pow(self, base, exponent):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def sin(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def cos(self, x):
         raise NotImplementedError()
 
 
@@ -321,6 +330,12 @@ class NumpyBackend(AbstractBackend):
     def neg(self, x):
         return self.np.negative(x)
 
+    def sin(self, x):
+        return self.np.sin(x)
+
+    def cos(self, x):
+        return self.np.cos(x)
+
 
 class JaxBackend(NumpyBackend):
     framework_name = "jax"
@@ -329,8 +344,8 @@ class JaxBackend(NumpyBackend):
         super().__init__()
         self.onp = self.np
 
-        import jax.numpy  # pyright: ignore[reportMissingImports]
-        import jax.random  # pyright: ignore[reportMissingImports]
+        import jax.numpy
+        import jax.random
 
         self.np = jax.numpy
         self._random = jax.random
@@ -340,7 +355,7 @@ class JaxBackend(NumpyBackend):
     def is_available() -> bool:
         return importlib.util.find_spec(name="jax") is not None
 
-    def rand(self, size):
+    def rand(self, size) -> Any:
         new_key, subkey = self._random.split(self.key)
         self.key = new_key
         return self._random.uniform(subkey, size)
@@ -355,7 +370,7 @@ class TorchBackend(AbstractBackend):
     framework_name = "torch"
 
     def __init__(self):
-        import torch  # pyright: ignore[reportMissingImports]
+        import torch
 
         self.torch = torch
 
@@ -366,8 +381,8 @@ class TorchBackend(AbstractBackend):
     def is_appropriate_type(self, tensor):
         return isinstance(tensor, self.torch.Tensor)
 
-    def arange(self, start, stop, dtype=None):
-        return self.torch.arange(start, stop, dtype=dtype)
+    def arange(self, start: Number, stop: Number, step: Number = 1):
+        return self.torch.arange(start=start, end=stop, step=step)
 
     def linspace(self, start, stop, num, dtype=None):
         return self.torch.linspace(start, stop, num, dtype=dtype)
@@ -473,3 +488,9 @@ class TorchBackend(AbstractBackend):
 
     def neg(self, x):
         return self.torch.negative(x)
+
+    def sin(self, x):
+        return self.torch.sin(x)
+
+    def cos(self, x):
+        return self.torch.cos(x)
