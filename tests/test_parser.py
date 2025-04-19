@@ -1,19 +1,20 @@
 import pytest
 
-from einmesh import einmesh
+from einmesh._backends import AbstractBackend
 from einmesh._exceptions import (
     InvalidListTypeError,
     UndefinedSpaceError,
     UnsupportedSpaceTypeError,
 )
+from einmesh._parser import _einmesh as einmesh
 from einmesh.spaces import LinSpace
 from tests.conftest import parametrize_backends
 
 
 @parametrize_backends
-def test_einmesh_basic(backend):
+def test_einmesh_basic(backend_cls: type[AbstractBackend]):
     """Test the basic functionality of einmesh without output pattern."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
@@ -27,9 +28,9 @@ def test_einmesh_basic(backend):
 
 
 @parametrize_backends
-def test_einmesh_star_pattern(backend):
+def test_einmesh_star_pattern(backend_cls: type[AbstractBackend]):
     """Test einmesh with * pattern to stack all meshes."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
     z_space = LinSpace(0.0, 1.0, 2)
@@ -48,9 +49,9 @@ def test_einmesh_star_pattern(backend):
 
 
 @parametrize_backends
-def test_einmesh_parentheses_pattern(backend):
+def test_einmesh_parentheses_pattern(backend_cls: type[AbstractBackend]):
     """Test einmesh with parentheses pattern to reshape dimensions."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
@@ -70,9 +71,9 @@ def test_einmesh_parentheses_pattern(backend):
 
 
 @parametrize_backends
-def test_einmesh_output_dimension_ordering(backend):
+def test_einmesh_output_dimension_ordering(backend_cls: type[AbstractBackend]):
     """Test that einmesh respects dimension ordering in output pattern."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
@@ -86,9 +87,9 @@ def test_einmesh_output_dimension_ordering(backend):
 
 
 @parametrize_backends
-def test_star_position(backend):
+def test_star_position(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles star position correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 7)
     y_space = LinSpace(0.0, 1.0, 9)
 
@@ -106,9 +107,9 @@ def test_star_position(backend):
 
 
 @parametrize_backends
-def test_axis_collection(backend):
+def test_axis_collection(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles axis collection correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
@@ -122,9 +123,9 @@ def test_axis_collection(backend):
 
 
 @parametrize_backends
-def test_star_in_axis_collection(backend):
+def test_star_in_axis_collection(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles star in axis collection correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
 
@@ -134,9 +135,9 @@ def test_star_in_axis_collection(backend):
 
 
 @parametrize_backends
-def test_invalid_pattern(backend):
+def test_invalid_pattern(backend_cls: type[AbstractBackend]):
     """Test that einmesh raises error for invalid patterns."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
 
     with pytest.raises(UndefinedSpaceError):
@@ -144,9 +145,9 @@ def test_invalid_pattern(backend):
 
 
 @parametrize_backends
-def test_einmesh_auto_conversion(backend):
+def test_einmesh_auto_conversion(backend_cls: type[AbstractBackend]):
     """Test automatic conversion of int, float, and list kwargs."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 3)
 
     # Test int -> ConstantSpace
@@ -191,9 +192,9 @@ def test_einmesh_auto_conversion(backend):
 
 
 @parametrize_backends
-def test_einmesh_auto_conversion_errors(backend):
+def test_einmesh_auto_conversion_errors(backend_cls: type[AbstractBackend]):
     """Test errors raised during automatic type conversion."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 3)
 
     # Test invalid type (string)

@@ -1,12 +1,13 @@
-from einmesh import einmesh
+from einmesh._backends import AbstractBackend
+from einmesh._parser import _einmesh as einmesh
 from einmesh.spaces import LinSpace
 from tests.conftest import parametrize_backends
 
 
 @parametrize_backends
-def test_repeated_space(backend):
+def test_repeated_space(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles repeated spaces correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     result = einmesh("* x x", x=x_space, backend=backend)
     assert backend.is_appropriate_type(result)
@@ -14,9 +15,9 @@ def test_repeated_space(backend):
 
 
 @parametrize_backends
-def test_repeated_space_in_parentheses(backend):
+def test_repeated_space_in_parentheses(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles repeated spaces in parentheses correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     result = einmesh("(x x)", x=x_space, backend=backend)
     assert isinstance(result, tuple)
@@ -28,9 +29,9 @@ def test_repeated_space_in_parentheses(backend):
 
 
 @parametrize_backends
-def test_repeated_space_in_parentheses_and_star(backend):
+def test_repeated_space_in_parentheses_and_star(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles repeated spaces in parentheses and star correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     result = einmesh("* (x x)", x=x_space, backend=backend)
     assert backend.is_appropriate_type(result)
@@ -38,9 +39,9 @@ def test_repeated_space_in_parentheses_and_star(backend):
 
 
 @parametrize_backends
-def test_repeated_space_with_non_repeated_space(backend):
+def test_repeated_space_with_non_repeated_space(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles repeated spaces with non-repeated spaces correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
     z_space = LinSpace(0.0, 1.0, 2)
@@ -50,9 +51,9 @@ def test_repeated_space_with_non_repeated_space(backend):
 
 
 @parametrize_backends
-def test_very_repeated_space(backend):
+def test_very_repeated_space(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles very repeated spaces correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
     results = einmesh("x x (x x) x (y x) x x", x=x_space, y=y_space, backend=backend)
@@ -64,9 +65,9 @@ def test_very_repeated_space(backend):
 
 
 @parametrize_backends
-def test_multi_repeated_space(backend):
+def test_multi_repeated_space(backend_cls: type[AbstractBackend]):
     """Test that einmesh handles very repeated spaces with star correctly."""
-    backend = backend()
+    backend = backend_cls()
     x_space = LinSpace(0.0, 1.0, 5)
     y_space = LinSpace(0.0, 1.0, 3)
     z_space = LinSpace(0.0, 1.0, 2)
