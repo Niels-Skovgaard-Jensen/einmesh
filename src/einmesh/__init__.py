@@ -1,5 +1,6 @@
-from einmesh._parser import _einmesh as einmesh
-from einmesh.spaces import (
+from ._einmesher import EinMesher
+from ._parser import _einmesh as einmesh
+from .spaces import (
     ConstantSpace,
     LinSpace,
     ListSpace,
@@ -11,6 +12,7 @@ from einmesh.spaces import (
 
 __all__ = [
     "ConstantSpace",
+    "EinMesher",
     "LinSpace",
     "ListSpace",
     "LogSpace",

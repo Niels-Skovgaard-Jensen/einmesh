@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 
 from einmesh._backends import JaxBackend
-from einmesh._parser import _einmesh
+from einmesh._parser import _einmesh  # pyright: ignore[reportPrivateUsage]
 from einmesh.spaces import SpaceType
 
 if TYPE_CHECKING:
-    import jax  # pyright: ignore[reportMissingImports]
+    import jax  # pyright: ignore[reportMissingImports] need for when jax is not installed
 
 
 def einmesh(pattern: str, **kwargs: SpaceType) -> "jax.Array":

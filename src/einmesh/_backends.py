@@ -208,6 +208,10 @@ class AbstractBackend(ABC):
     def cos(self, x):
         raise NotImplementedError()
 
+    @abstractmethod
+    def any(self, x):
+        raise NotImplementedError()
+
 
 class NumpyBackend(AbstractBackend):
     framework_name = "numpy"
@@ -336,12 +340,16 @@ class NumpyBackend(AbstractBackend):
     def cos(self, x):
         return self.np.cos(x)
 
+    def any(self, x):
+        return self.np.any(x)
+
 
 class JaxBackend(NumpyBackend):
     framework_name = "jax"
 
     def __init__(self):
         super().__init__()
+        # Preserve original numpy module for seed generation
         self.onp = self.np
 
         import jax.numpy  # pyright: ignore[reportMissingImports]
@@ -349,7 +357,11 @@ class JaxBackend(NumpyBackend):
 
         self.np = jax.numpy
         self._random = jax.random
-        self.key = jax.random.PRNGKey(0)
+        # Initialize PRNGKey with random seed to ensure varied sampling across instances
+        import random
+
+        seed = random.randrange(0, 2**31 - 1)
+        self.key = self._random.PRNGKey(seed)
 
     @staticmethod
     def is_available() -> bool:
@@ -412,7 +424,10 @@ class TorchBackend(AbstractBackend):
         return tuple(tensor.shape)
 
     def meshgrid(self, *tensors, indexing="ij"):
-        return self.torch.meshgrid(*tensors, indexing=indexing)
+        # Ensure all tensors have the same dtype (float32) to avoid meshgrid dtype mismatch
+        dt = self.float32
+        tensors_cast = [t.to(dt) for t in tensors]
+        return self.torch.meshgrid(*tensors_cast, indexing=indexing)
 
     def size(self, tensor):
         return tensor.numel()
@@ -494,3 +509,6 @@ class TorchBackend(AbstractBackend):
 
     def cos(self, x):
         return self.torch.cos(x)
+
+    def any(self, x):
+        return self.torch.any(x)
