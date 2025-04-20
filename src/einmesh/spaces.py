@@ -16,67 +16,68 @@ class SpaceType(ABC):
 
     operators: list[BackendOperator] = field(init=False, default_factory=list)
 
+    def _with_operator(self, operator: BackendOperator, prepend: bool = False) -> SpaceType:
+        """Return a copy of this space with the given operator applied."""
+        new_space = deepcopy(self)
+        if prepend:
+            new_space.operators.insert(0, operator)
+        else:
+            new_space.operators.append(operator)
+        return new_space
+
+    def _with_operators(self, operators: list[BackendOperator], prepend: bool = False) -> SpaceType:
+        """Return a copy of this space with multiple operators applied."""
+        new_space = deepcopy(self)
+        if prepend:
+            new_space.operators = operators + new_space.operators
+        else:
+            new_space.operators.extend(operators)
+        return new_space
+
     def __abs__(self) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.abs())
-        return self_copy
+        return self._with_operator(OperatorFactory.abs())
 
     def __add__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.add(value=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.add(value=other))
 
     def __radd__(self, other) -> SpaceType:
         return self.__add__(other)
 
     def __sub__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.sub(value=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.sub(value=other))
 
     def __rsub__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.insert(0, OperatorFactory.neg())
-        self_copy.operators.insert(1, OperatorFactory.add(value=other))
-        return self_copy
+        return self._with_operators(
+            operators=[
+                OperatorFactory.neg(),
+                OperatorFactory.add(value=other),
+            ],
+            prepend=True,
+        )
 
     def __mul__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.mul(value=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.mul(value=other))
 
     def __rmul__(self, other) -> SpaceType:
         return self.__mul__(other)
 
     def __mod__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.mod(value=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.mod(value=other))
 
     def __floordiv__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.floor_div(value=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.floor_div(value=other))
 
     def __truediv__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.div(value=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.div(value=other))
 
     def __neg__(self) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.neg())
-        return self_copy
+        return self._with_operator(OperatorFactory.neg())
 
     def __pos__(self) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.pos())
-        return self_copy
+        return self._with_operator(OperatorFactory.pos())
 
     def __pow__(self, other) -> SpaceType:
-        self_copy = deepcopy(self)
-        self_copy.operators.append(OperatorFactory.pow(exponent=other))
-        return self_copy
+        return self._with_operator(OperatorFactory.pow(exponent=other))
 
     @abstractmethod
     def _generate_samples(self, backend: AbstractBackend):
@@ -251,7 +252,7 @@ class NormalDistribution(Distribution):
 
     def _generate_samples(self, backend: AbstractBackend):
         """Generates samples from the normal distribution."""
-        return backend.normal(self.mean, self.std, size=(self.num,))
+        return backend.normal(mean=self.mean, std=self.std, size=(self.num,))
 
 
 @dataclass
@@ -275,4 +276,4 @@ class UniformDistribution(Distribution):
     def _generate_samples(self, backend: AbstractBackend):
         """Generates samples from the uniform distribution."""
         # torch.rand samples from [0, 1), so we scale and shift.
-        return backend.rand(self.num) * (self.high - self.low) + self.low
+        return backend.rand(size=(self.num,)) * (self.high - self.low) + self.low
