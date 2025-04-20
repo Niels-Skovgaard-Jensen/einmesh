@@ -58,15 +58,10 @@ def test_underscore_error(backend_cls: type[AbstractBackend]):
         mesher.sample()
 
 
-@parametrize_backends
-def test_unknown_backend_error(backend_cls: type[AbstractBackend]):
-    backend = backend_cls()
-    mesher = _EinMesher("x y", x=LinSpace(0.0, 1.0, 2), y=LinSpace(0.0, 1.0, 2), backend=backend)
+def test_unknown_backend_error():
+    mesher = _EinMesher("x y", x=LinSpace(0.0, 1.0, 2), y=LinSpace(0.0, 1.0, 2), backend="NotDefinedBackend")
     with pytest.raises(UnknownBackendError):
         mesher.sample()
-
-
-# Backend selection tests
 
 
 def test_get_backend_selection_torch():

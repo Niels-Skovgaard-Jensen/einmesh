@@ -13,10 +13,11 @@ from tests.conftest import parametrize_backends
 
 
 @parametrize_backends
-def test_einmesher_init(backend):
+def test_einmesher_init(backend_cls: type[AbstractBackend]):
     """Test EinMesher initialization."""
     pattern = "x y"
     spaces = {"x": LinSpace(0, 1, 3), "y": ConstantSpace(5)}
+    backend = backend_cls()
     mesher = _EinMesher(pattern, backend=backend, **spaces)
     assert mesher.pattern == pattern
     assert mesher.spaces == spaces
