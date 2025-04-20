@@ -1,5 +1,4 @@
 import re
-import typing as t
 from typing import Any
 
 import einops
@@ -75,7 +74,7 @@ def _handle_duplicate_names(
 
 
 # Define the type alias for acceptable kwarg values
-KwargValueType = t.Union[SpaceType, int, float, list[t.Union[int, float]]]
+KwargValueType = SpaceType | int | float | list[int | float]
 
 
 def _get_backend(backend: AbstractBackend | str) -> AbstractBackend:

@@ -1,11 +1,12 @@
-from einmesh import einmesh
+from einmesh._backends import AbstractBackend
+from einmesh._parser import _einmesh as einmesh
 from einmesh.spaces import LinSpace
 from tests.conftest import parametrize_backends
 
 
 @parametrize_backends
-def test_linear_space(backend):
-    backend = backend()
+def test_linear_space(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
     x_torch = backend.linspace(0, 1, 10)
 
     x_einmesh = einmesh("i", i=LinSpace(start=0, end=1, num=10), backend=backend)
@@ -14,8 +15,8 @@ def test_linear_space(backend):
 
 
 @parametrize_backends
-def test_linear_space_2d(backend):
-    backend = backend()
+def test_linear_space_2d(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
     x_torch = backend.linspace(0, 1, 10)
     y_torch = backend.linspace(0, 1, 10)
 
@@ -28,8 +29,8 @@ def test_linear_space_2d(backend):
 
 
 @parametrize_backends
-def test_linear_space_8d(backend):
-    backend = backend()
+def test_linear_space_8d(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
     dims = [backend.linspace(0, 1, 10) for _ in range(8)]
     torch_meshes = backend.meshgrid(*dims, indexing="ij")
 

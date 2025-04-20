@@ -1,10 +1,11 @@
+from einmesh._backends import AbstractBackend
 from einmesh.spaces import LinSpace
 from tests.conftest import parametrize_backends
 
 
 @parametrize_backends
-def test_addition_with_float(backend):
-    backend = backend()
+def test_addition_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -17,8 +18,8 @@ def test_addition_with_float(backend):
 
 
 @parametrize_backends
-def test_subtraction_with_float(backend):
-    backend = backend()
+def test_subtraction_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -29,8 +30,8 @@ def test_subtraction_with_float(backend):
 
 
 @parametrize_backends
-def test_multiplication_with_float(backend):
-    backend = backend()
+def test_multiplication_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -41,8 +42,8 @@ def test_multiplication_with_float(backend):
 
 
 @parametrize_backends
-def test_truediv_with_float(backend):
-    backend = backend()
+def test_truediv_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -53,8 +54,8 @@ def test_truediv_with_float(backend):
 
 
 @parametrize_backends
-def test_mod_with_float(backend):
-    backend = backend()
+def test_mod_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -65,8 +66,8 @@ def test_mod_with_float(backend):
 
 
 @parametrize_backends
-def test_floordiv_with_float(backend):
-    backend = backend()
+def test_floordiv_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -77,8 +78,8 @@ def test_floordiv_with_float(backend):
 
 
 @parametrize_backends
-def test_pow_with_float(backend):
-    backend = backend()
+def test_pow_with_float(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -89,8 +90,8 @@ def test_pow_with_float(backend):
 
 
 @parametrize_backends
-def test_negation(backend):
-    backend = backend()
+def test_negation(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 
@@ -100,8 +101,8 @@ def test_negation(backend):
 
 
 @parametrize_backends
-def test_pos(backend):
-    backend = backend()
+def test_pos(backend_cls: type[AbstractBackend]):
+    backend = backend_cls()
 
     linspace = LinSpace(start=0.0, end=1.0, num=5)
 

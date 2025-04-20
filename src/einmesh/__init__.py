@@ -1,5 +1,4 @@
-from einmesh._parser import _einmesh as einmesh
-from einmesh.spaces import (
+from .spaces import (
     ConstantSpace,
     LinSpace,
     ListSpace,
@@ -17,5 +16,4 @@ __all__ = [
     "NormalDistribution",
     "SpaceType",
     "UniformDistribution",
-    "einmesh",
 ]

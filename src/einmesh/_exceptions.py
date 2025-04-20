@@ -67,5 +67,13 @@ class UnknownBackendError(Exception):
     """Error raised when a backend is unknown to einmesh."""
 
     def __init__(self, backend: str):
-        self.message = f"Backend unknown to einmesh: {backend}"
+        self.message: str = f"Backend unknown to einmesh: {backend}"
+        super().__init__(self.message)
+
+
+class BackendNotInstalledError(Exception):
+    """Error raised when a backend is not installed."""
+
+    def __init__(self, backend: str):
+        self.message: str = f"Backend {backend} not installed, but implicitly imported through einmesh"
         super().__init__(self.message)

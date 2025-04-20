@@ -4,7 +4,7 @@ from einmesh._backends import JaxBackend, NumpyBackend, TorchBackend
 
 # Define the reusable decorator
 parametrize_backends = pytest.mark.parametrize(
-    argnames="backend",
+    argnames="backend_cls",
     argvalues=[
         pytest.param(
             TorchBackend,
@@ -20,11 +20,3 @@ parametrize_backends = pytest.mark.parametrize(
     ],
     ids=["torch", "numpy", "jax"],  # Optional: Add IDs for clearer test names
 )
-
-
-def init_backend(func, backend_class):
-    def wrapper(*args, **kwargs):
-        kwargs["backend"] = backend_class()
-        return func(*args, **kwargs)
-
-    return wrapper
