@@ -64,6 +64,7 @@ def test_unknown_backend_error():
         mesher.sample()
 
 
+@pytest.mark.skipif(not TorchBackend.is_available(), reason="Torch not available")
 def test_get_backend_selection_torch():
     import torch
 
@@ -72,6 +73,7 @@ def test_get_backend_selection_torch():
     assert isinstance(backend, TorchBackend)
 
 
+@pytest.mark.skipif(not NumpyBackend.is_available(), reason="Numpy not available")
 def test_get_backend_selection_numpy():
     import numpy as np
 
