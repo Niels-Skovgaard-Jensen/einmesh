@@ -33,6 +33,13 @@ class ArrowError(PatternError):
         super().__init__("Arrow '->' is not allowed in pattern")
 
 
+class MultipleEllipsisError(PatternError):
+    """Error raised when multiple ellipsis are found in the pattern."""
+
+    def __init__(self) -> None:
+        super().__init__("Multiple ellipsis are not allowed in the einmesh pattern")
+
+
 class UndefinedSpaceError(ValueError):
     """Error raised when a required sample space is not defined."""
 
