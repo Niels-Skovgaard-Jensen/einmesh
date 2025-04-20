@@ -211,3 +211,77 @@ def test_einmesh_auto_conversion_errors(backend_cls: type[AbstractBackend]):
 
     x_coords_empty, w_coords_empty = einmesh("x w", x=x_space, w=[], backend=backend)
     assert backend.shape(w_coords_empty) == (3, 0)  # Shape should reflect the empty list dimension
+
+
+@parametrize_backends
+def test_ellipsis_basic_substitution(backend_cls: type[AbstractBackend]):
+    """Test basic ellipsis substitution without stacking or grouping."""
+    backend = backend_cls()
+
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+    args = [x_space, y_space]
+
+    x_mesh, y_mesh = einmesh("...", *args, backend=backend)
+    assert backend.is_appropriate_type(x_mesh)
+    assert backend.is_appropriate_type(y_mesh)
+    assert backend.shape(x_mesh) == (5, 3)
+    assert backend.shape(y_mesh) == (5, 3)
+
+
+@parametrize_backends
+def test_ellipsis_stacked_substitution(backend_cls: type[AbstractBackend]):
+    """Test ellipsis substitution with stacking."""
+    backend = backend_cls()
+
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+    args = [x_space, y_space]
+
+    result = einmesh("* ...", *args, backend=backend)
+    assert backend.is_appropriate_type(result)
+    assert backend.shape(result) == (2, 5, 3)
+
+
+@parametrize_backends
+def test_ellipsis_grouped_substitution(backend_cls: type[AbstractBackend]):
+    """Test ellipsis substitution with stacking and grouping."""
+    backend = backend_cls()
+
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+    args = [x_space, y_space]
+
+    result = einmesh("* (...)", *args, backend=backend)
+    assert backend.is_appropriate_type(result)
+    assert backend.shape(result) == (2, 15)
+
+
+@parametrize_backends
+def test_ellipsis_combined_axes(backend_cls: type[AbstractBackend]):
+    """Test ellipsis substitution combined with other axes."""
+    backend = backend_cls()
+
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+    z_space = LinSpace(0.0, 1.0, 4)
+    args = [x_space, y_space, z_space]
+
+    result = einmesh("* x y ... z", *args, x=x_space, y=y_space, z=z_space, backend=backend)
+    assert backend.is_appropriate_type(result)
+    assert backend.shape(result) == (6, 5, 3, 5, 3, 4, 4)
+
+
+@parametrize_backends
+def test_ellipsis_combined_axes_with_parentheses(backend_cls: type[AbstractBackend]):
+    """Test ellipsis substitution combined with other axes."""
+    backend = backend_cls()
+
+    x_space = LinSpace(0.0, 1.0, 5)
+    y_space = LinSpace(0.0, 1.0, 3)
+    z_space = LinSpace(0.0, 1.0, 4)
+    args = [x_space, y_space, z_space]
+
+    result = einmesh("* x y (...) z", *args, x=x_space, y=y_space, z=z_space, backend=backend)
+    assert backend.is_appropriate_type(result)
+    assert backend.shape(result) == (6, 5, 3, 5 * 3 * 4, 4)
