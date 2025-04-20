@@ -101,7 +101,7 @@ class AbstractBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def shape(self, tensor):
+    def shape(self, tensor) -> tuple[int, ...]:
         raise NotImplementedError()
 
     @abstractmethod

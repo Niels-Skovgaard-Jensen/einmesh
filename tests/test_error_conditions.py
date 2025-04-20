@@ -94,6 +94,7 @@ def test_get_backend_selection_jax():
 # JAX backend seed initialization sanity check
 
 
+@pytest.mark.skipif(not JaxBackend.is_available(), reason="JAX not available")
 def test_jax_backend_seed_variation():
     # The initial PRNGKey should differ across instances
     b1 = JaxBackend()
