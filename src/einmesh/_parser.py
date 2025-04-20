@@ -7,6 +7,7 @@ from einmesh._backends import AbstractBackend, JaxBackend, NumpyBackend, TorchBa
 from einmesh._exceptions import (
     ArrowError,
     InvalidListTypeError,
+    MultipleEllipsisError,
     MultipleStarError,
     UnbalancedParenthesesError,
     UndefinedSpaceError,
@@ -93,7 +94,47 @@ def _get_backend(backend: AbstractBackend | str) -> AbstractBackend:
         raise UnknownBackendError(backend)
 
 
-def _einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueType) -> Any | tuple[Any, ...]:
+def _parse_args(args: tuple[KwargValueType, ...]) -> tuple[str, dict[str, KwargValueType]]:
+    """
+    Parses the arguments and returns a tuple of processed args and kwargs.
+    """
+    processed_args: dict[str, KwargValueType] = {}
+    for i, arg in enumerate(args):
+        args_name = f"arg__{i}"
+        processed_args[args_name] = arg
+
+    elipsis_substituion = " ".join(list(processed_args.keys()))
+
+    return elipsis_substituion, processed_args
+
+
+def _parse_kwargs(kwargs: dict[str, KwargValueType]) -> dict[str, SpaceType]:
+    """
+    Parses the kwargs and returns a dictionary of SpaceType objects.
+    """
+    processed_kwargs: dict[str, SpaceType] = {}
+    for name, value in kwargs.items():
+        if isinstance(value, (int, float)):
+            processed_kwargs[name] = ConstantSpace(value=float(value))
+        elif isinstance(value, list):
+            # Check if list contains only numbers (int or float)
+            if all(isinstance(item, (int, float)) for item in value):
+                # Convert all items to float for consistency
+                processed_kwargs[name] = ListSpace(values=[float(item) for item in value])
+            else:
+                # Explicitly annotate the list as list[str] to satisfy the type checker
+                invalid_types: list[str] = [type(item).__name__ for item in value if not isinstance(item, (int, float))]
+                raise InvalidListTypeError(space_name=name, invalid_types=invalid_types)
+        elif isinstance(value, SpaceType):
+            processed_kwargs[name] = value
+        else:
+            raise UnsupportedSpaceTypeError(space_name=name, invalid_type=type(value).__name__)
+    return processed_kwargs
+
+
+def _einmesh(
+    pattern: str, *args: KwargValueType, backend: AbstractBackend | str = "numpy", **kwargs: KwargValueType
+) -> Any | tuple[Any, ...]:
     """
     Creates multi-dimensional meshgrids using an einops-style pattern string.
 
@@ -184,57 +225,47 @@ def _einmesh(pattern: str, backend: AbstractBackend | str, **kwargs: KwargValueT
     """
 
     _verify_pattern(pattern)
-    backend = _get_backend(backend)
+    backend: AbstractBackend = _get_backend(backend)
+
+    elipsis_substituion, processed_args = _parse_args(args)
+
+    pattern: str = pattern.replace("...", elipsis_substituion)
+
+    kwargs: dict[str, KwargValueType] = {**kwargs, **processed_args}
 
     # Process kwargs to convert raw values to SpaceTypes
-    processed_kwargs: dict[str, SpaceType] = {}
-    for name, value in kwargs.items():
-        if isinstance(value, (int, float)):
-            processed_kwargs[name] = ConstantSpace(value=float(value))
-        elif isinstance(value, list):
-            # Check if list contains only numbers (int or float)
-            if all(isinstance(item, (int, float)) for item in value):
-                # Convert all items to float for consistency
-                processed_kwargs[name] = ListSpace(values=[float(item) for item in value])
-            else:
-                # Explicitly annotate the list as list[str] to satisfy the type checker
-                invalid_types: list[str] = [type(item).__name__ for item in value if not isinstance(item, (int, float))]
-                raise InvalidListTypeError(space_name=name, invalid_types=invalid_types)
-        elif isinstance(value, SpaceType):
-            processed_kwargs[name] = value
-        else:
-            raise UnsupportedSpaceTypeError(space_name=name, invalid_type=type(value).__name__)
+    processed_kwargs: dict[str, SpaceType] = _parse_kwargs(kwargs)
 
     # get stack index
-    shape_pattern = pattern.replace("(", "").replace(")", "")
-    stack_idx = shape_pattern.split().index("*") if "*" in shape_pattern else None
+    shape_pattern: str = pattern.replace("(", "").replace(")", "")
+    stack_idx: int | None = shape_pattern.split().index("*") if "*" in shape_pattern else None
 
     # Check for and handle duplicate names in pattern using processed kwargs
     pattern, name_mapping, processed_kwargs_renamed = _handle_duplicate_names(pattern, shape_pattern, processed_kwargs)
 
     # Determine the final order of space names from the potentially modified pattern
-    final_pattern_names = pattern.replace("(", "").replace(")", "").split()
+    final_pattern_names: list[str] = pattern.replace("(", "").replace(")", "").split()
     # Filter out '*' as it's not a sampling space name
-    sampling_list = [name for name in final_pattern_names if name != "*"]
+    sampling_list: list[str] = [name for name in final_pattern_names if name != "*"]
 
     # Pass the ordered sampling_list and processed+renamed kwargs
     meshes, dim_shapes = _generate_samples(sampling_list, backend, **processed_kwargs_renamed)
 
     # Handle star pattern for stacking meshes
-    input_sampling_list = list(sampling_list)  # Base list for input pattern
+    input_sampling_list: list[str] = list(sampling_list)  # Base list for input pattern
     if stack_idx is not None:
-        meshes = backend.stack(meshes, dim=stack_idx)
+        meshes: Any = backend.stack(meshes, dim=stack_idx)
         dim_shapes["einstack"] = meshes.shape[stack_idx]
         # Insert 'einstack' into the sampling list copy at the correct index for the input pattern
         input_sampling_list.insert(stack_idx, "einstack")
 
     # Define the input pattern based on the actual order of dimensions in the tensor(s)
-    input_pattern = " ".join(input_sampling_list)
+    input_pattern: str = " ".join(input_sampling_list)
 
     if backend.is_appropriate_type(meshes):  # Stacked case
         # Output pattern: User pattern with '*' replaced by 'einstack'
-        output_pattern = pattern.replace("*", "einstack")
-        meshes = einops.rearrange(meshes, f"{input_pattern} -> {output_pattern}", **dim_shapes)
+        output_pattern: str = pattern.replace("*", "einstack")
+        meshes: Any = einops.rearrange(meshes, f"{input_pattern} -> {output_pattern}", **dim_shapes)
 
     elif isinstance(meshes, list):  # Non-stacked case (must be tuple eventually)
         rearranged_meshes = []
@@ -290,25 +321,10 @@ def _generate_samples(sampling_list: list[str], backend: AbstractBackend, **kwar
 
 
 def _verify_pattern(pattern: str) -> None:
-    """
-    Performs basic validation checks on the input pattern string.
-
-    Checks for:
-    - More than one stacking operator (`*`).
-    - Unbalanced parentheses.
-    # - Presence of underscores ('_') - Currently commented out.
-
-    Args:
-        pattern: The input einmesh pattern string.
-
-    Raises:
-        MultipleStarError: If pattern contains more than one `*`.
-        UnbalancedParenthesesError: If pattern has unbalanced parentheses.
-        ArrowError: If pattern contains '->'.
-        # UnderscoreError: If pattern contains '_' (currently disabled).
-    """
     if pattern.count("*") > 1:
         raise MultipleStarError()
+    if pattern.count("...") > 1:
+        raise MultipleEllipsisError()
     if pattern.count("(") != pattern.count(")"):
         raise UnbalancedParenthesesError()
     if "_" in pattern:

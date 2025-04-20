@@ -20,7 +20,8 @@ def test_einmesher_init(backend_cls: type[AbstractBackend]):
     backend = backend_cls()
     mesher = _EinMesher(pattern, backend=backend, **spaces)
     assert mesher.pattern == pattern
-    assert mesher.spaces == spaces
+    assert mesher.named_spaces == spaces
+    assert mesher.unamed_spaces == ()
 
 
 @parametrize_backends
