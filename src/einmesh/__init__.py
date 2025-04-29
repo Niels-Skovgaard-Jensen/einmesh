@@ -1,3 +1,4 @@
+from ._operators import cos, exp, sin
 from .spaces import (
     ConstantSpace,
     LinSpace,
@@ -16,4 +17,7 @@ __all__ = [
     "NormalDistribution",
     "SpaceType",
     "UniformDistribution",
+    "cos",
+    "exp",
+    "sin",
 ]

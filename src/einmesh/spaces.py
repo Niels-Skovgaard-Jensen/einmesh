@@ -92,7 +92,7 @@ class SpaceType(ABC):
     def _apply_operators(self, sample, backend: AbstractBackend) -> Any:
         """Apply the operators to the space type."""
         for operator in self.operators:
-            sample = operator(x=sample, backend=backend)
+            sample = operator._apply(x=sample, backend=backend)
         return sample
 
 

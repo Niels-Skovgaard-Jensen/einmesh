@@ -209,6 +209,10 @@ class AbstractBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def exp(self, x):
+        raise NotImplementedError()
+
+    @abstractmethod
     def any(self, x):
         raise NotImplementedError()
 
@@ -339,6 +343,9 @@ class NumpyBackend(AbstractBackend):
 
     def cos(self, x):
         return self.np.cos(x)
+
+    def exp(self, x):
+        return self.np.exp(x)
 
     def any(self, x):
         return self.np.any(x)
@@ -509,6 +516,9 @@ class TorchBackend(AbstractBackend):
 
     def cos(self, x):
         return self.torch.cos(x)
+
+    def exp(self, x):
+        return self.torch.exp(x)
 
     def any(self, x):
         return self.torch.any(x)
