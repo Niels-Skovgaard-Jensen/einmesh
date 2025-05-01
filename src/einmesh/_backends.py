@@ -73,7 +73,7 @@ class AbstractBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def arange(self, start: float, stop: float, step: float = 1):
+    def arange(self, start: Number, stop: Number, step: Number):
         raise NotImplementedError()
 
     @abstractmethod
@@ -251,7 +251,7 @@ class NumpyBackend(AbstractBackend):
             size = (size,)
         return self.np.random.rand(*size)
 
-    def arange(self, start, stop, step=1):
+    def arange(self, start: float | int | None, stop: float | int, step: float | int | None = None):
         return self.np.arange(start, stop, step)
 
     def allclose(self, a, b, rtol=1e-05, atol=1e-08, equal_nan=False):
@@ -393,7 +393,7 @@ class TorchBackend(AbstractBackend):
     def is_appropriate_type(self, tensor):
         return isinstance(tensor, self.torch.Tensor)
 
-    def arange(self, start: Number, stop: Number, step: Number = 1):
+    def arange(self, start: Number, stop: Number, step: Number):
         return self.torch.arange(start=start, end=stop, step=step)
 
     def linspace(self, start, stop, num, dtype=None):
