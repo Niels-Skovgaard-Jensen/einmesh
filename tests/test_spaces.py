@@ -12,6 +12,7 @@ from einmesh.spaces import (
     ListSpace,
     LogSpace,
     NormalDistribution,
+    RangeSpace,
     UniformDistribution,
 )
 
@@ -128,6 +129,33 @@ def test_list_space(backend_cls: type[AbstractBackend]):
     # Convert test values to tensor using appropriate backend
     expected = backend.tensor(test_values)
     assert backend.allclose(samples, expected)
+
+
+@parametrize_backends
+@pytest.mark.parametrize(
+    "start, stop, step, expected",
+    [
+        (0, 5, 1, [0, 1, 2, 3, 4]),
+        (1, 6, 1, [1, 2, 3, 4, 5]),
+        (-5, 0, 1, [-5, -4, -3, -2, -1]),
+        (0, 10, 2, [0, 2, 4, 6, 8]),
+        (10, 0, -2, [10, 8, 6, 4, 2]),
+        (-6, 6, 3, [-6, -3, 0, 3]),
+        (5, -5, -2, [5, 3, 1, -1, -3]),
+        (0, 1, 0.25, [0, 0.25, 0.5, 0.75]),
+    ],
+)
+def test_range_space(backend_cls: type[AbstractBackend], start, stop, step, expected):
+    # Test initialization
+    backend = backend_cls()
+    range_space = RangeSpace(start=start, stop=stop, step=step)
+    assert range_space.start == start
+    assert range_space.stop == stop
+    assert range_space.num is not None
+
+    # Test basic arange functionality
+    samples = range_space._sample(backend)
+    assert backend.allclose(samples, backend.arange(start, stop, step))
 
 
 @parametrize_backends
