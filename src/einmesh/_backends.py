@@ -73,7 +73,7 @@ class AbstractBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def arange(self, start: float, stop: float, step: float = 1):
+    def arange(self, start: Number, stop: Number, step: Number):
         raise NotImplementedError()
 
     @abstractmethod
