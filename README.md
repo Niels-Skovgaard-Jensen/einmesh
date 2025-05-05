@@ -43,11 +43,8 @@ from einmesh.numpy import einmesh # Creates numpy arrays
 from einmesh.jax import einmesh # Creates JAX arrays
 from einmesh.torch import einmesh # Creates Torch Tensors
 ```
-
+- **Super-Lightweight**: Only installation dependency is einops! At runtime backends are loaded if available.
 # Examples
-
-Here are a few examples demonstrating how to use `einmesh`:
-
 **1. Basic 2D Linear Grid**
 
 Create a simple 2D grid with linearly spaced points along x and y.

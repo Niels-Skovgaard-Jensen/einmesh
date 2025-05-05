@@ -4,6 +4,7 @@ from .spaces import (
     ListSpace,
     LogSpace,
     NormalDistribution,
+    RangeSpace,
     SpaceType,
     UniformDistribution,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "ListSpace",
     "LogSpace",
     "NormalDistribution",
+    "RangeSpace",
     "SpaceType",
     "UniformDistribution",
 ]
