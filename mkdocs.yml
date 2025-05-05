@@ -17,7 +17,6 @@ nav:
     - torch: torch.md
     - jax: jax.md
     - Spaces: spaces.md
-    - Distributions: distributions.md
 plugins:
   - search
   - ipynb
