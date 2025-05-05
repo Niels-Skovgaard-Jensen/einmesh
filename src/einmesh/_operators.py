@@ -7,13 +7,13 @@ class BackendOperator:
     """Base class for all operators acting on einmesh tensors."""
 
     @abstractmethod
-    def __call__(self, x, backend: AbstractBackend): ...
+    def _apply(self, x, backend: AbstractBackend): ...
 
 
 class BackendAbs(BackendOperator):
     """Operator for absolute value."""
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.abs(x)
 
 
@@ -23,7 +23,7 @@ class BackendAdd(BackendOperator):
     def __init__(self, value: float):
         self.value = value
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.add(x, summand=self.value)
 
 
@@ -33,7 +33,7 @@ class BackendSub(BackendOperator):
     def __init__(self, value: float):
         self.value = value
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.sub(x, subtrahend=self.value)
 
 
@@ -43,7 +43,7 @@ class BackendMul(BackendOperator):
     def __init__(self, value: float):
         self.value = value
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.mul(x, multiplier=self.value)
 
 
@@ -53,7 +53,7 @@ class BackendDiv(BackendOperator):
     def __init__(self, value: float):
         self.value = value
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.truediv(x, divisor=self.value)
 
 
@@ -63,7 +63,7 @@ class BackendMod(BackendOperator):
     def __init__(self, value: float):
         self.value = value
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.mod(x, divisor=self.value)
 
 
@@ -73,7 +73,7 @@ class BackendFloorDiv(BackendOperator):
     def __init__(self, value: float):
         self.value = value
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.floordiv(x, divisor=self.value)
 
 
@@ -83,22 +83,49 @@ class BackendPow(BackendOperator):
     def __init__(self, exponent: float):
         self.exponent = exponent
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.pow(base=x, exponent=self.exponent)
 
 
 class BackendNeg(BackendOperator):
     """Operator for negation."""
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.neg(x)
 
 
 class BackendPos(BackendOperator):
     """Operator for positive value."""
 
-    def __call__(self, x, backend: AbstractBackend):
+    def _apply(self, x, backend: AbstractBackend):
         return backend.pos(x)
+
+
+class BackendCos(BackendOperator):
+    def _apply(self, x, backend: AbstractBackend):
+        return backend.cos(x)
+
+
+class BackendSin(BackendOperator):
+    def _apply(self, x, backend: AbstractBackend):
+        return backend.sin(x)
+
+
+class BackendExp(BackendOperator):
+    def _apply(self, x, backend: AbstractBackend):
+        return backend.exp(x)
+
+
+def cos(space):
+    return space._with_operator(BackendCos())
+
+
+def sin(space):
+    return space._with_operator(BackendSin())
+
+
+def exp(space):
+    return space._with_operator(BackendExp())
 
 
 class OperatorFactory:
