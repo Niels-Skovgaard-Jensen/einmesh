@@ -11,8 +11,13 @@ if TYPE_CHECKING:
     import numpy as np  # pyright: ignore[reportMissingImports]
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], ...]:
-    return _einmesh(pattern, backend=NumpyBackend(), **kwargs)
+def einmesh(
+    pattern: str, *unamed_spaces: SpaceType, **named_spaces: SpaceType
+) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], ...]:
+    """
+    Numpy einmesh function.
+    """
+    return _einmesh(pattern, *unamed_spaces, backend=NumpyBackend(), **named_spaces)
 
 
 # Expose a preconfigured EinMesher class bound to NumPy backend
