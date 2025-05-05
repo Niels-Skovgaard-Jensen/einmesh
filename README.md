@@ -48,6 +48,7 @@ from einmesh.torch import einmesh # Creates Torch Tensors
 
 Here are a few examples demonstrating how to use `einmesh`:
 
+
 **1. Basic 2D Linear Grid**
 
 Create a simple 2D grid with linearly spaced points along x and y.
