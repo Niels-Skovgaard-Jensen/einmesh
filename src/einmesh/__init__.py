@@ -1,4 +1,3 @@
-from ._operators import cos, sin
 from .spaces import (
     ConstantSpace,
     LinSpace,
@@ -19,6 +18,4 @@ __all__ = [
     "RangeSpace",
     "SpaceType",
     "UniformDistribution",
-    "cos",
-    "sin",
 ]
