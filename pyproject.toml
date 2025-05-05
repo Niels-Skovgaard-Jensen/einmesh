@@ -1,6 +1,6 @@
 [project]
 name = "einmesh"
-version = "0.1.1"
+version = "0.1.2"
 description = "einops style multi dimensional meshgrids"
 authors = [{ name = "Niels Skovgaard Jensen", email = "niels@skovgaardjensen.io" }]
 readme = "README.md"
@@ -53,11 +53,13 @@ dev = [
     "mkdocs-material>=8.5.10",
     "mkdocstrings[python]>=0.26.1",
     "markdown-include>=0.8.1",
-    "mkdocs-jupyter>=0.25.1",
     "pygments>=2.19.1",
     "hatch>=1.14.0",
     "matplotlib>=3.10.1",
     "basedpyright>=1.28.5",
+    "mkdocs-ipynb>=0.1.1",
+    "ipykernel>=6.29.5",
+    "pyvista>=0.45.0",
 ]
 dev-all = [
     "einmesh[dev]",

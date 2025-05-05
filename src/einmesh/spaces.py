@@ -177,6 +177,32 @@ class LinSpace(SpaceType):
 
 
 @dataclass
+class RangeSpace(SpaceType):
+    """
+    Return evenly spaced values within a given interval.
+
+    This class generates a tensor of `num` points evenly spaced between `start`
+    and `end` (inclusive). It works like a arange function of numpy, torch or jax.
+
+    Attributes:
+        start: The starting value of the sequence.
+        end: The ending value of the sequence.
+        num: The number of points to generate.
+    """
+
+    start: float
+    stop: float
+    step: int = 1
+
+    def __post_init__(self) -> None:
+        self.num: int = int((self.stop - self.start) / self.step)
+
+    def _generate_samples(self, backend: AbstractBackend) -> Any:
+        """Generates the linearly spaced points using arange."""
+        return backend.arange(self.start, self.stop, self.step)
+
+
+@dataclass
 class ConstantSpace(SpaceType):
     """
     Represents a constant value repeated multiple times.

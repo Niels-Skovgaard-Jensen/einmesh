@@ -1,6 +1,6 @@
 .PHONY: install
 install: ## Install the virtual environment and install the pre-commit hooks
-	@echo "🚀 Creating virtual environment using uv"
+	@echo "🚀 Installing all development dependencies. Creating virtual environment using uv"
 	@uv sync --group dev-all
 	@uv run pre-commit install
 
@@ -63,7 +63,7 @@ docs-test: ## Test if documentation can be built without warnings or errors
 	@uv run mkdocs build -s
 
 .PHONY: docs
-docs: notebook_docs## Build and serve the documentation
+docs:## Build and serve the documentation
 	@uv run mkdocs serve -s
 
 .PHONY: help

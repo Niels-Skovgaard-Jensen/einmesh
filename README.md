@@ -9,7 +9,7 @@
 [![Build status](https://img.shields.io/github/actions/workflow/status/niels-skovgaard-jensen/einmesh/main.yml?branch=main)](https://github.com/niels-skovgaard-jensen/einmesh/actions/workflows/main.yml?query=branch%3Amain)
 [![Commit activity](https://img.shields.io/github/commit-activity/m/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/commit-activity/m/niels-skovgaard-jensen/einmesh)
 [![License](https://img.shields.io/github/license/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/license/niels-skovgaard-jensen/einmesh)
-
+[![codecov](https://codecov.io/gh/Niels-Skovgaard-Jensen/einmesh/graph/badge.svg?token=S7TLOCT48T)](https://codecov.io/gh/Niels-Skovgaard-Jensen/einmesh)
 
 
 # Installation
@@ -43,11 +43,8 @@ from einmesh.numpy import einmesh # Creates numpy arrays
 from einmesh.jax import einmesh # Creates JAX arrays
 from einmesh.torch import einmesh # Creates Torch Tensors
 ```
-
+- **Super-Lightweight**: Only installation dependency is einops! At runtime backends are loaded if available.
 # Examples
-
-Here are a few examples demonstrating how to use `einmesh`:
-
 **1. Basic 2D Linear Grid**
 
 Create a simple 2D grid with linearly spaced points along x and y.
