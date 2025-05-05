@@ -3,7 +3,7 @@
 </p>
 
 ## einops-style multi dimensional meshgrids
-
+[![codecov](https://codecov.io/gh/Niels-Skovgaard-Jensen/einmesh/graph/badge.svg?token=S7TLOCT48T)](https://codecov.io/gh/Niels-Skovgaard-Jensen/einmesh)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/einmesh)
 [![Release](https://img.shields.io/github/v/release/niels-skovgaard-jensen/einmesh)](https://img.shields.io/github/v/release/niels-skovgaard-jensen/einmesh)
 [![Build status](https://img.shields.io/github/actions/workflow/status/niels-skovgaard-jensen/einmesh/main.yml?branch=main)](https://github.com/niels-skovgaard-jensen/einmesh/actions/workflows/main.yml?query=branch%3Amain)
