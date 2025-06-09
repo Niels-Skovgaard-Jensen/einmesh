@@ -12,6 +12,7 @@ nav:
   - README: index.md
   - Examples:
       - notebooks/basics.ipynb
+      - notebooks/comparison_with_meshgrids.ipynb
   - API:
     - numpy: numpy.md
     - torch: torch.md
