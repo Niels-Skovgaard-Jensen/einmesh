@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/jax/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/numpy/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/spaces/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/torch/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/notebooks/basics/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://niels-skovgaard-jensen.github.io/einmesh/notebooks/comparison_with_meshgrids/</loc>
+         <lastmod>2025-10-05</lastmod>
+    </url>
+</urlset>
