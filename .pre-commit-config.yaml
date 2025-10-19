@@ -7,11 +7,6 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-yaml
-      - id: check-json
-        exclude: ^.devcontainer/devcontainer.json
-      - id: pretty-format-json
-        exclude: ^docs/notebooks/.+\.ipynb$
-        args: [--autofix]
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
