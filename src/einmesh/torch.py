@@ -11,8 +11,10 @@ if TYPE_CHECKING:
     import torch  # pyright: ignore[reportMissingImports]
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> torch.Tensor:
-    return _einmesh(pattern, backend=TorchBackend(), **kwargs)  # pyright: ignore[reportReturnType]
+def einmesh(
+    pattern: str, *unamed_spaces: SpaceType, **named_spaces: SpaceType
+) -> torch.Tensor | tuple[torch.Tensor, ...]:
+    return _einmesh(pattern, *unamed_spaces, backend=TorchBackend(), **named_spaces)  # pyright: ignore[reportReturnType]
 
 
 # Expose a preconfigured EinMesher class bound to Torch backend
