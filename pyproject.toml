@@ -29,7 +29,7 @@ Documentation = "https://einmesh.xyz"
 
 [dependency-groups]
 jax = [
-    "jax>=0.5.3",
+    "jax[cuda12]>=0.5.3",
     "einmesh[dev]",
 ]
 torch = [
@@ -64,7 +64,7 @@ dev = [
 ]
 dev-all = [
     "einmesh[dev]",
-    "jax>=0.5.3",
+    "jax[cuda12]>=0.5.3",
     "torch>=1.0",
     "numpy>=2.0",
 ]
