@@ -17,6 +17,8 @@ from einmesh._exceptions import (
 )
 from einmesh.spaces import ConstantSpace, ListSpace, SpaceType
 
+KwargValueType = SpaceType | int | float | list[int | float]
+
 
 def _handle_duplicate_names(
     pattern: str,
@@ -42,70 +44,46 @@ def _handle_duplicate_names(
             - A dictionary mapping new names to original names (e.g., {"x_0": "x", "x_1": "x"}).
             - The updated kwargs dictionary with renamed keys and removed originals.
     """
-    seen_names: dict[str, int] = {}
-    name_mapping: dict[str, str] = {}
-
-    # First count occurrences of each name (excluding '*')
+    counts: dict[str, int] = {}
     for name in shape_pattern.split():
         if name != "*":
-            seen_names[name] = seen_names.get(name, 0) + 1
+            counts[name] = counts.get(name, 0) + 1
 
-    # Then rename duplicates for each unique name with counts > 1
-    for name in list(seen_names.keys()):
-        if seen_names[name] > 1:
-            for i in range(seen_names[name]):
-                new_name = f"{name}_{i}"
-                # Use regex to replace only whole words to avoid partial matches
-                pattern = re.sub(rf"\b{name}\b", new_name, pattern, count=1)
-                name_mapping[new_name] = name
-
-    # Update kwargs with renamed spaces
-    updated_kwargs = kwargs.copy()  # Avoid modifying the original dict directly
-    for new_name, orig_name in name_mapping.items():
-        if orig_name in updated_kwargs:
-            updated_kwargs[new_name] = updated_kwargs[orig_name]
-
-    # Remove original names that were renamed
-    orig_names_to_remove = set(name_mapping.values())
-    for orig_name in orig_names_to_remove:
-        if orig_name in updated_kwargs:
-            updated_kwargs.pop(orig_name)
-
+    name_mapping: dict[str, str] = {}
+    updated_kwargs: dict[str, SpaceType] = {k: v for k, v in kwargs.items() if counts.get(k, 0) <= 1}
+    for name, count in counts.items():
+        if count <= 1:
+            continue
+        for i in range(count):
+            new_name = f"{name}_{i}"
+            pattern = re.sub(rf"\b{name}\b", new_name, pattern, count=1)
+            name_mapping[new_name] = name
+            if name in kwargs:
+                updated_kwargs[new_name] = kwargs[name]
     return pattern, name_mapping, updated_kwargs
 
 
-# Define the type alias for acceptable kwarg values
-KwargValueType = SpaceType | int | float | list[int | float]
+_BACKEND_BY_NAME: dict[str, type[AbstractBackend]] = {
+    "torch": TorchBackend,
+    "jax": JaxBackend,
+    "numpy": NumpyBackend,
+}
 
 
 def _get_backend(backend: AbstractBackend | str) -> AbstractBackend:
-    if isinstance(backend, str):
-        if backend == "torch":
-            return TorchBackend()
-        elif backend == "jax":
-            return JaxBackend()
-        elif backend == "numpy":
-            return NumpyBackend()
-        else:
-            raise UnknownBackendError(backend)
-    elif isinstance(backend, AbstractBackend):
+    if isinstance(backend, AbstractBackend):
         return backend
-    else:
-        raise UnknownBackendError(backend)
+    if isinstance(backend, str) and backend in _BACKEND_BY_NAME:
+        return _BACKEND_BY_NAME[backend]()
+    raise UnknownBackendError(backend)
 
 
 def _parse_args(args: tuple[KwargValueType, ...]) -> tuple[str, dict[str, KwargValueType]]:
     """
     Parses the arguments and returns a tuple of processed args and kwargs.
     """
-    processed_args: dict[str, KwargValueType] = {}
-    for i, arg in enumerate(args):
-        args_name = f"arg__{i}"
-        processed_args[args_name] = arg
-
-    elipsis_substituion = " ".join(list(processed_args.keys()))
-
-    return elipsis_substituion, processed_args
+    processed_args: dict[str, KwargValueType] = {f"arg__{i}": arg for i, arg in enumerate(args)}
+    return " ".join(processed_args), processed_args
 
 
 def _parse_kwargs(kwargs: dict[str, KwargValueType]) -> dict[str, SpaceType]:
@@ -225,58 +203,37 @@ def _einmesh(
     """
 
     _verify_pattern(pattern)
-    backend: AbstractBackend = _get_backend(backend)
+    backend = _get_backend(backend)
 
-    elipsis_substituion, processed_args = _parse_args(args)
+    ellipsis_substitution, processed_args = _parse_args(args)
+    pattern = pattern.replace("...", ellipsis_substitution)
+    kwargs = {**kwargs, **processed_args}
 
-    pattern: str = pattern.replace("...", elipsis_substituion)
+    processed_kwargs = _parse_kwargs(kwargs)
 
-    kwargs: dict[str, KwargValueType] = {**kwargs, **processed_args}
+    shape_pattern = pattern.replace("(", "").replace(")", "")
+    stack_idx = shape_pattern.split().index("*") if "*" in shape_pattern else None
 
-    # Process kwargs to convert raw values to SpaceTypes
-    processed_kwargs: dict[str, SpaceType] = _parse_kwargs(kwargs)
+    pattern, _name_mapping, processed_kwargs_renamed = _handle_duplicate_names(pattern, shape_pattern, processed_kwargs)
 
-    # get stack index
-    shape_pattern: str = pattern.replace("(", "").replace(")", "")
-    stack_idx: int | None = shape_pattern.split().index("*") if "*" in shape_pattern else None
+    final_pattern_names = pattern.replace("(", "").replace(")", "").split()
+    sampling_list = [name for name in final_pattern_names if name != "*"]
 
-    # Check for and handle duplicate names in pattern using processed kwargs
-    pattern, name_mapping, processed_kwargs_renamed = _handle_duplicate_names(pattern, shape_pattern, processed_kwargs)
-
-    # Determine the final order of space names from the potentially modified pattern
-    final_pattern_names: list[str] = pattern.replace("(", "").replace(")", "").split()
-    # Filter out '*' as it's not a sampling space name
-    sampling_list: list[str] = [name for name in final_pattern_names if name != "*"]
-
-    # Pass the ordered sampling_list and processed+renamed kwargs
     meshes, dim_shapes = _generate_samples(sampling_list, backend, **processed_kwargs_renamed)
 
-    # Handle star pattern for stacking meshes
-    input_sampling_list: list[str] = list(sampling_list)  # Base list for input pattern
+    input_sampling_list = list(sampling_list)
     if stack_idx is not None:
-        meshes: Any = backend.stack(meshes, dim=stack_idx)
+        meshes = backend.stack(meshes, dim=stack_idx)
         dim_shapes["einstack"] = meshes.shape[stack_idx]
-        # Insert 'einstack' into the sampling list copy at the correct index for the input pattern
         input_sampling_list.insert(stack_idx, "einstack")
 
-    # Define the input pattern based on the actual order of dimensions in the tensor(s)
-    input_pattern: str = " ".join(input_sampling_list)
+    input_pattern = " ".join(input_sampling_list)
 
-    if backend.is_appropriate_type(meshes):  # Stacked case
-        # Output pattern: User pattern with '*' replaced by 'einstack'
-        output_pattern: str = pattern.replace("*", "einstack")
-        meshes: Any = einops.rearrange(meshes, f"{input_pattern} -> {output_pattern}", **dim_shapes)
-
-    elif isinstance(meshes, list):  # Non-stacked case (must be tuple eventually)
-        rearranged_meshes = []
-        # Output pattern: User pattern (with renames, no '*' or 'einstack')
-        output_pattern = pattern
-        # Input pattern is the same for all meshes in the list
-        for mesh in meshes:
-            # Rearrange each mesh individually
-            rearranged_mesh = einops.rearrange(mesh, f"{input_pattern} -> {output_pattern}", **dim_shapes)
-            rearranged_meshes.append(rearranged_mesh)
-        meshes = tuple(rearranged_meshes)  # Convert list back to tuple
+    if backend.is_appropriate_type(meshes):
+        output_pattern = pattern.replace("*", "einstack")
+        meshes = einops.rearrange(meshes, f"{input_pattern} -> {output_pattern}", **dim_shapes)
+    elif isinstance(meshes, list):
+        meshes = tuple(einops.rearrange(mesh, f"{input_pattern} -> {pattern}", **dim_shapes) for mesh in meshes)
 
     return meshes
 
