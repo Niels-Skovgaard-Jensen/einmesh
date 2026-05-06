@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import importlib
 import inspect
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pytest
@@ -96,7 +97,7 @@ def _assert_outputs_match(outputs: dict[str, Any]) -> None:
         )
         if is_tuple:
             assert len(out) == len(reference), f"tuple length differs between {reference_name} and {name}"
-            for ref_item, item in zip(reference, out):
+            for ref_item, item in zip(reference, out, strict=False):
                 assert_allclose(_to_numpy(item), _to_numpy(ref_item))
         else:
             assert_allclose(_to_numpy(out), _to_numpy(reference))

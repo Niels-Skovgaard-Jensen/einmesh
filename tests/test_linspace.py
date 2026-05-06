@@ -38,5 +38,5 @@ def test_linear_space_8d(backend_cls: type[AbstractBackend]):
     einmesh_pattern = " ".join(einmesh_spaces.keys())
     einmesh_meshes = einmesh(einmesh_pattern, backend=backend, **einmesh_spaces)
 
-    for torch_mesh, einmesh_mesh in zip(torch_meshes, einmesh_meshes):
+    for torch_mesh, einmesh_mesh in zip(torch_meshes, einmesh_meshes, strict=False):
         assert backend.allclose(torch_mesh, einmesh_mesh)
