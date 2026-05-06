@@ -92,16 +92,16 @@ def _parse_kwargs(kwargs: dict[str, KwargValueType]) -> dict[str, SpaceType]:
     """
     processed_kwargs: dict[str, SpaceType] = {}
     for name, value in kwargs.items():
-        if isinstance(value, (int, float)):
+        if isinstance(value, int | float):
             processed_kwargs[name] = ConstantSpace(value=float(value))
         elif isinstance(value, list):
             # Check if list contains only numbers (int or float)
-            if all(isinstance(item, (int, float)) for item in value):
+            if all(isinstance(item, int | float) for item in value):
                 # Convert all items to float for consistency
                 processed_kwargs[name] = ListSpace(values=[float(item) for item in value])
             else:
                 # Explicitly annotate the list as list[str] to satisfy the type checker
-                invalid_types: list[str] = [type(item).__name__ for item in value if not isinstance(item, (int, float))]
+                invalid_types: list[str] = [type(item).__name__ for item in value if not isinstance(item, int | float)]
                 raise InvalidListTypeError(space_name=name, invalid_types=invalid_types)
         elif isinstance(value, SpaceType):
             processed_kwargs[name] = value
