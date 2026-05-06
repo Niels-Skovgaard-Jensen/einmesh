@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     import jax  # pyright: ignore[reportMissingImports] need for when jax is not installed
 
 
-def einmesh(pattern: str, **kwargs: SpaceType) -> jax.Array:
-    return _einmesh(pattern, backend=JaxBackend(), **kwargs)  # pyright: ignore[reportReturnType]
+def einmesh(pattern: str, *unamed_spaces: SpaceType, **named_spaces: SpaceType) -> jax.Array | tuple[jax.Array, ...]:
+    return _einmesh(pattern, *unamed_spaces, backend=JaxBackend(), **named_spaces)
 
 
 # Expose a preconfigured EinMesher class bound to JAX backend
